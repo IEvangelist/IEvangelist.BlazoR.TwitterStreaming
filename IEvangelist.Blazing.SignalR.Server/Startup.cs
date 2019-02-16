@@ -1,5 +1,7 @@
 using System.Linq;
 using System.Net.Mime;
+using IEvangelist.Blazing.SignalR.Server.Hubs;
+using IEvangelist.Blazing.SignalR.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +32,9 @@ namespace IEvangelist.Blazing.SignalR.Server
                 });
             });
 
+            services.AddSignalR();
+            services.AddSingleton<ITwitterService, TwitterService>();
+
             Auth.SetUserCredentials(
                 _configuration["Authentication:Twitter:ConsumerKey"],
                 _configuration["Authentication:Twitter:ConsumerSecret"],
@@ -51,6 +56,8 @@ namespace IEvangelist.Blazing.SignalR.Server
             {
                 routes.MapRoute(name: "default", template: "{controller}/{action}/{id?}");
             });
+
+            app.UseSignalR(routes => routes.MapHub<StreamHub>("/streamHub"));
 
             app.UseBlazor<Client.Startup>();
             app.UseBlazorDebugging();
