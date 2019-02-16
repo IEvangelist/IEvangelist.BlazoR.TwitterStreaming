@@ -1,13 +1,12 @@
 using System.Linq;
 using System.Net.Mime;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Tweetinvi;
 
 namespace IEvangelist.Blazing.SignalR.Server
 {
@@ -31,22 +30,11 @@ namespace IEvangelist.Blazing.SignalR.Server
                 });
             });
 
-            services
-                .AddAuthentication(options =>
-                {
-                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                })
-                .AddCookie()
-                .AddTwitter(twitterOptions =>
-                {
-                    twitterOptions.ConsumerKey = _configuration["Authentication:Twitter:ConsumerKey"];
-                    twitterOptions.ConsumerSecret = _configuration["Authentication:Twitter:ConsumerSecret"];
-                    twitterOptions.Events.OnRemoteFailure = (context) =>
-                    {
-                        context.HandleResponse();
-                        return context.Response.WriteAsync("<script>window.close();</script>");
-                    };
-                });
+            Auth.SetUserCredentials(
+                _configuration["Authentication:Twitter:ConsumerKey"],
+                _configuration["Authentication:Twitter:ConsumerSecret"],
+                _configuration["Authentication:Twitter:AccessToken"],
+                _configuration["Authentication:Twitter:AccessTokenSecret"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
