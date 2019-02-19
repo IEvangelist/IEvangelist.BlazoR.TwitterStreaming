@@ -1,0 +1,40 @@
+﻿@page "/twitterStream"
+
+@using IEvangelist.Blazing.SignalR.Shared
+@using System.Threading;
+@using IEvangelist.Blazing.SignalR.Client.Services
+
+@inject ITwitterStreamService StreamService
+
+@if (tweets == null)
+{
+    <p><em>Waiting for tweet stream to start...</em></p>
+}
+else
+{
+    <div id="tweets">
+        <ul>
+            @foreach (var tweet in tweets)
+            {
+                var tweetHTml = new MarkupString(tweet.HTML);
+                <li>@tweetHTml</li>
+            }
+        </ul>
+    </div>
+}
+
+@functions {
+    List<TweetResult> tweets = new List<TweetResult>();
+    CancellationTokenSource cts = new CancellationTokenSource();
+
+    protected override async Task OnInitAsync()
+    {
+        await StreamService.SubscribeAsync(OnTweetReceived, cts.Token);
+    }
+
+    void OnTweetReceived(TweetResult tweet)
+    {
+        tweets.Add(tweet);
+        StateHasChanged();
+    }
+}

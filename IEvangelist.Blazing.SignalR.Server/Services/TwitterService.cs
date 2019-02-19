@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using IEvangelist.Blazing.SignalR.Shared;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Tweetinvi;
-using Tweetinvi.Models;
 
 namespace IEvangelist.Blazing.SignalR.Server.Services
 {
@@ -13,16 +13,16 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         public TwitterService(ILogger<TwitterService> logger) => _logger = logger;
 
-        public ChannelReader<IOEmbedTweet> StartStreaming(CancellationToken token)
+        public ChannelReader<TweetResult> StartStreaming(CancellationToken token)
         {
-            var channel = Channel.CreateUnbounded<IOEmbedTweet>();
+            var channel = Channel.CreateUnbounded<TweetResult>();
 
             _ = WriteTweetsFromStream(channel.Writer, token);
 
             return channel.Reader;
         }
 
-        async Task WriteTweetsFromStream(ChannelWriter<IOEmbedTweet> writer, CancellationToken token)
+        async Task WriteTweetsFromStream(ChannelWriter<TweetResult> writer, CancellationToken token)
         {
             var stream = Stream.CreateFilteredStream();
 
@@ -39,7 +39,20 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
                     token.ThrowIfCancellationRequested();
                 }
 
-                await writer.WriteAsync(Tweet.GetOEmbedTweet(args.Tweet), token);
+                var tweet = Tweet.GetOEmbedTweet(args.Tweet);
+                await writer.WriteAsync(new TweetResult
+                {
+                    AuthorName = tweet.AuthorName,
+                    AuthorURL = tweet.AuthorURL,
+                    CacheAge = tweet.CacheAge,
+                    Height = tweet.Height,
+                    HTML = tweet.HTML,
+                    ProviderURL = tweet.ProviderURL,
+                    Type = tweet.Type,
+                    URL = tweet.URL,
+                    Version = tweet.Version,
+                    Width = tweet.Width
+                }, token);
             };
             stream.DisconnectMessageReceived += (sender, args) =>
             {

@@ -1,8 +1,9 @@
 ﻿using IEvangelist.Blazing.SignalR.Server.Services;
+using IEvangelist.Blazing.SignalR.Shared;
 using Microsoft.AspNetCore.SignalR;
 using System.Threading;
 using System.Threading.Channels;
-using Tweetinvi.Models;
+using System.Threading.Tasks;
 
 namespace IEvangelist.Blazing.SignalR.Server.Hubs
 {
@@ -12,11 +13,10 @@ namespace IEvangelist.Blazing.SignalR.Server.Hubs
 
         public StreamHub(ITwitterService twitterService) => _twitterService = twitterService;
 
-        public ChannelReader<IOEmbedTweet> StartStreaming()
-        {
-            // Is this right?
-            var cts = new CancellationTokenSource();
-            return _twitterService.StartStreaming(cts.Token);
-        }
+        public ChannelReader<TweetResult> StartStreaming(CancellationToken token) 
+            => _twitterService.StartStreaming(token);
+
+        public Task SendMessage(string message)
+            => Clients.All.SendAsync("SendMessage", message);
     }
 }

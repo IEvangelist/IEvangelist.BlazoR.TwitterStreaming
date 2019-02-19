@@ -32,14 +32,14 @@ namespace IEvangelist.Blazing.SignalR.Server
                 });
             });
 
-            services.AddSignalR();
-            services.AddSingleton<ITwitterService, TwitterService>();
-
             Auth.SetUserCredentials(
                 _configuration["Authentication:Twitter:ConsumerKey"],
                 _configuration["Authentication:Twitter:ConsumerSecret"],
                 _configuration["Authentication:Twitter:AccessToken"],
                 _configuration["Authentication:Twitter:AccessTokenSecret"]);
+
+            services.AddSignalR();
+            services.AddSingleton<ITwitterService, TwitterService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
