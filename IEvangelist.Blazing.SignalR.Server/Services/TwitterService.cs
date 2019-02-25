@@ -1,46 +1,52 @@
-﻿using IEvangelist.Blazing.SignalR.Shared;
+﻿using IEvangelist.Blazing.SignalR.Server.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Tweetinvi;
+using Tweetinvi.Models;
+using Tweetinvi.Streaming;
+using TweetResult = IEvangelist.Blazing.SignalR.Server.Models.TweetResult;
 
 namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public class TwitterService : ITwitterService
     {
         readonly ILogger<TwitterService> _logger;
+        readonly IHubContext<StreamHub> _hubContext;
+        readonly IFilteredStream _filteredStream; 
 
-        public TwitterService(ILogger<TwitterService> logger) => _logger = logger;
-
-        public ChannelReader<TweetResult> StartStreaming(CancellationToken token)
+        public TwitterService(
+            ILogger<TwitterService> logger,
+            IHubContext<StreamHub> hubContext)
         {
-            var channel = Channel.CreateUnbounded<TweetResult>();
-
-            _ = WriteTweetsFromStream(channel.Writer, token);
-
-            return channel.Reader;
+            _logger = logger;
+            _hubContext = hubContext;
+            _filteredStream = Stream.CreateFilteredStream();
         }
 
-        async Task WriteTweetsFromStream(ChannelWriter<TweetResult> writer, CancellationToken token)
+        public async Task StartStreamingAsync(CancellationToken token)
         {
-            var stream = Stream.CreateFilteredStream();
+            if (_filteredStream.StreamState == StreamState.Running)
+            {
+                return;
+            }
 
-            stream.AddTrack("#developercommunity");
-            stream.AddTrack("#ndcminnesota");
-            stream.AddTrack("#signalr");
-            stream.AddTrack("@davidpine7");
+            _filteredStream.AddTrack("#developercommunity");
+            _filteredStream.AddTrack("#ndcminnesota");
+            _filteredStream.AddTrack("#signalr");
+            _filteredStream.AddTrack("@davidpine7");
 
-            stream.MatchingTweetReceived += async (sender, args) =>
+            _filteredStream.MatchingTweetReceived += async (sender, args) =>
             {
                 if (token.IsCancellationRequested)
                 {
-                    stream.StopStream();
+                    _filteredStream.StopStream();
                     token.ThrowIfCancellationRequested();
                 }
 
                 var tweet = Tweet.GetOEmbedTweet(args.Tweet);
-                await writer.WriteAsync(new TweetResult
+                await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
                 {
                     AuthorName = tweet.AuthorName,
                     AuthorURL = tweet.AuthorURL,
@@ -54,39 +60,32 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
                     Width = tweet.Width
                 }, token);
             };
-            stream.DisconnectMessageReceived += (sender, args) =>
+            _filteredStream.DisconnectMessageReceived += (sender, args) =>
             {
-                _logger.LogWarning("Disconnected from twitter stream.", args);
+                _logger.LogWarning("Disconnected from twitter _filteredStream.", args);
             };
-            stream.StreamStarted += (sender, args) =>
+            _filteredStream.StreamStarted += (sender, args) =>
             {
                 _logger.LogInformation("Twitter stream started.");
             };
-            stream.StreamStopped += (sender, args) =>
+            _filteredStream.StreamStopped += (sender, args) =>
             {
                 _logger.LogInformation($"Twitter stream stopped, {args}.");
             };
-            stream.StreamResumed += (sender, args) =>
+            _filteredStream.StreamResumed += (sender, args) =>
             {
                 _logger.LogInformation("Twitter stream resumed.");
             };
-            stream.StreamPaused += (sender, args) =>
+            _filteredStream.StreamPaused += (sender, args) =>
             {
                 _logger.LogInformation("Twitter stream paused.");
             };
-            stream.WarningFallingBehindDetected += (sender, args) =>
+            _filteredStream.WarningFallingBehindDetected += (sender, args) =>
             {
                 _logger.LogInformation($"Twitter stream falling behind, {args.WarningMessage}.");
             };
 
-            await stream.StartStreamMatchingAnyConditionAsync();
-
-            // I'm not certain this is correct... It feels very wrong.
-            // I need to investigate this more to see the correct way to have an event-driven
-            // streaming mechenism, that sits behind a channel reader instead of blocking.
-            token.WaitHandle.WaitOne();
-            
-            writer.TryComplete();
+            await _filteredStream.StartStreamMatchingAnyConditionAsync();
         }
     }
 }

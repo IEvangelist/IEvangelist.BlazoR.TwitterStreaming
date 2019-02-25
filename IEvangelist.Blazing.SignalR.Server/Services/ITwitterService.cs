@@ -1,11 +1,10 @@
-﻿using IEvangelist.Blazing.SignalR.Shared;
-using System.Threading;
-using System.Threading.Channels;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public interface ITwitterService
     {
-        ChannelReader<TweetResult> StartStreaming(CancellationToken token);
+        Task StartStreamingAsync(CancellationToken token);
     }
 }

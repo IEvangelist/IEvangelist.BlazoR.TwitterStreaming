@@ -1,13 +1,15 @@
-using System.Linq;
-using System.Net.Mime;
 using IEvangelist.Blazing.SignalR.Server.Hubs;
 using IEvangelist.Blazing.SignalR.Server.Services;
+using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
+using System;
+using System.Linq;
+using System.Net.Mime;
 using Tweetinvi;
 
 namespace IEvangelist.Blazing.SignalR.Server
@@ -22,7 +24,10 @@ namespace IEvangelist.Blazing.SignalR.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().AddNewtonsoftJson();
+            services.AddConnections();
+            services.AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
+                    .AddMessagePackProtocol();
+
             services.AddResponseCompression(options =>
             {
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
@@ -38,8 +43,21 @@ namespace IEvangelist.Blazing.SignalR.Server
                 _configuration["Authentication:Twitter:AccessToken"],
                 _configuration["Authentication:Twitter:AccessTokenSecret"]);
 
-            services.AddSignalR();
             services.AddSingleton<ITwitterService, TwitterService>();
+
+            services.AddMvc().AddJsonOptions(options =>
+            {
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            });
+
+            services.AddCors(
+                options =>
+                options.AddPolicy("CorsPolicy",
+                    builder =>
+                    builder.AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowAnyOrigin()
+                           .AllowCredentials()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,15 +70,18 @@ namespace IEvangelist.Blazing.SignalR.Server
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseHttpsRedirection();
+            app.UseCookiePolicy();
+            app.UseCors("CorsPolicy");
+
+            app.UseSignalR(routes => routes.MapHub<StreamHub>("/streamHub"));
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(name: "default", template: "{controller}/{action}/{id?}");
             });
 
-            app.UseSignalR(routes => routes.MapHub<StreamHub>("/streamHub"));
-
             app.UseBlazor<Client.Startup>();
-            app.UseBlazorDebugging();
         }
     }
 }

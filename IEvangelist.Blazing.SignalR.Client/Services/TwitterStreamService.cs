@@ -1,32 +1,26 @@
-﻿using IEvangelist.Blazing.SignalR.Shared;
-using Microsoft.AspNetCore.SignalR.Client;
+﻿using Blazor.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using IEvangelist.Blazing.SignalR.Client.Models;
 
 namespace IEvangelist.Blazing.SignalR.Client.Services
 {
     public class TwitterStreamService : ITwitterStreamService
     {
-        public async Task SubscribeAsync(Action<TweetResult> callback, CancellationToken token)
+        public async Task SubscribeAsync(Func<TweetResult, Task> handler)
         {
             var connection =
                 new HubConnectionBuilder()
                     .WithUrl("/streamHub")
+                    .AddMessagePackProtocol()
                     .Build();
 
-            connection.Closed += async (error) => await connection.StartAsync();
+            connection.OnClose(async ex => await connection.StartAsync());
+            connection.On<TweetResult>("TweetReceived", handler);
 
-            var channel = 
-                await connection.StreamAsChannelAsync<TweetResult>("StartStreaming", token);
-
-            while (await channel.WaitToReadAsync())
-            {
-                while (channel.TryRead(out var tweet))
-                {
-                    callback(tweet);
-                }
-            }
+            await connection.StartAsync();
+            await connection.InvokeAsync("StartStreaming");
         }
     }
 }
