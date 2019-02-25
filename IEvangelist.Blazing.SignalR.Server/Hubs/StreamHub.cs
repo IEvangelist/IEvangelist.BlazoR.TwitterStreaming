@@ -8,11 +8,17 @@ namespace IEvangelist.Blazing.SignalR.Server.Hubs
     public class StreamHub : Hub
     {
         readonly ITwitterService _twitterService;
-        readonly CancellationToken _token = new CancellationToken();
 
-        public StreamHub(ITwitterService twitterService) => _twitterService = twitterService;
+        public StreamHub(ITwitterService twitterService)
+        {
+            _twitterService = twitterService;
+            _twitterService.Initialize();
+        }
 
-        public Task StartStreaming() 
-            => _twitterService.StartStreamingAsync(_token);
+        public Task StartTweetStream() => _twitterService.StartTweetStreamAsync();
+
+        public void PauseTweetStream() => _twitterService.PauseTweetStream();
+
+        public void StopTweetStream() => _twitterService.StopTweetStream();
     }
 }

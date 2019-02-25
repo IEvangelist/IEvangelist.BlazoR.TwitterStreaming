@@ -8,5 +8,9 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
     public interface ITwitterStreamService
     {
         Task SubscribeAsync(Func<TweetResult, Task> handler);
+
+        Task PauseAsync();
+
+        Task StopAsync();
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Blazor.Extensions;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using IEvangelist.Blazing.SignalR.Client.Models;
 
@@ -8,19 +7,31 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
 {
     public class TwitterStreamService : ITwitterStreamService
     {
+        readonly HubConnection _connection;
+
+        public TwitterStreamService()
+        {
+            _connection =
+                new HubConnectionBuilder()
+                   .WithUrl("/streamHub")
+                   .AddMessagePackProtocol()
+                   .Build();
+
+            _connection.OnClose(async ex => await _connection.StartAsync());
+        }
+
         public async Task SubscribeAsync(Func<TweetResult, Task> handler)
         {
-            var connection =
-                new HubConnectionBuilder()
-                    .WithUrl("/streamHub")
-                    .AddMessagePackProtocol()
-                    .Build();
+            _connection.On<TweetResult>("TweetReceived", handler);
 
-            connection.OnClose(async ex => await connection.StartAsync());
-            connection.On<TweetResult>("TweetReceived", handler);
-
-            await connection.StartAsync();
-            await connection.InvokeAsync("StartStreaming");
+            await _connection.StartAsync();
+            await _connection.InvokeAsync("StartTweetStream");
         }
+
+        public async Task PauseAsync()
+            => await _connection.InvokeAsync("PauseTweetStream");
+
+        public async Task StopAsync()
+            => await _connection.InvokeAsync("StopTweetStream");
     }
 }

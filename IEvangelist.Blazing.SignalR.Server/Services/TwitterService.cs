@@ -1,7 +1,7 @@
-﻿using IEvangelist.Blazing.SignalR.Server.Hubs;
+﻿using System;
+using IEvangelist.Blazing.SignalR.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using System.Threading;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -12,9 +12,11 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public class TwitterService : ITwitterService
     {
+        bool _isInitialized;
+
         readonly ILogger<TwitterService> _logger;
         readonly IHubContext<StreamHub> _hubContext;
-        readonly IFilteredStream _filteredStream; 
+        readonly IFilteredStream _filteredStream;
 
         public TwitterService(
             ILogger<TwitterService> logger,
@@ -25,9 +27,33 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             _filteredStream = Stream.CreateFilteredStream();
         }
 
-        public async Task StartStreamingAsync(CancellationToken token)
+        public async Task StartTweetStreamAsync()
         {
-            if (_filteredStream.StreamState == StreamState.Running)
+            if (_filteredStream.StreamState != StreamState.Running)
+            {
+                await _filteredStream.StartStreamMatchingAnyConditionAsync();
+            }
+        }
+
+        public void PauseTweetStream()
+        {
+            if (_filteredStream.StreamState != StreamState.Pause)
+            {
+                _filteredStream.PauseStream();
+            }
+        }
+
+        public void StopTweetStream()
+        {
+            if (_filteredStream.StreamState != StreamState.Stop)
+            {
+                _filteredStream.StopStream();
+            }
+        }
+
+        public void Initialize()
+        {
+            if (_isInitialized)
             {
                 return;
             }
@@ -39,53 +65,55 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
             _filteredStream.MatchingTweetReceived += async (sender, args) =>
             {
-                if (token.IsCancellationRequested)
-                {
-                    _filteredStream.StopStream();
-                    token.ThrowIfCancellationRequested();
-                }
-
                 var tweet = Tweet.GetOEmbedTweet(args.Tweet);
+                var index = tweet.HTML.IndexOf("<script", StringComparison.Ordinal);
+                var html = tweet.HTML.Substring(0, index);
                 await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
                 {
                     AuthorName = tweet.AuthorName,
                     AuthorURL = tweet.AuthorURL,
                     CacheAge = tweet.CacheAge,
                     Height = tweet.Height,
-                    HTML = tweet.HTML,
+                    HTML = html,
                     ProviderURL = tweet.ProviderURL,
                     Type = tweet.Type,
                     URL = tweet.URL,
                     Version = tweet.Version,
                     Width = tweet.Width
-                }, token);
+                });
             };
+
             _filteredStream.DisconnectMessageReceived += (sender, args) =>
             {
                 _logger.LogWarning("Disconnected from twitter _filteredStream.", args);
             };
+
             _filteredStream.StreamStarted += (sender, args) =>
             {
                 _logger.LogInformation("Twitter stream started.");
             };
+
             _filteredStream.StreamStopped += (sender, args) =>
             {
                 _logger.LogInformation($"Twitter stream stopped, {args}.");
             };
+
             _filteredStream.StreamResumed += (sender, args) =>
             {
                 _logger.LogInformation("Twitter stream resumed.");
             };
+
             _filteredStream.StreamPaused += (sender, args) =>
             {
                 _logger.LogInformation("Twitter stream paused.");
             };
+
             _filteredStream.WarningFallingBehindDetected += (sender, args) =>
             {
                 _logger.LogInformation($"Twitter stream falling behind, {args.WarningMessage}.");
             };
 
-            await _filteredStream.StartStreamMatchingAnyConditionAsync();
+            _isInitialized = true;
         }
     }
 }

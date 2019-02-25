@@ -1,10 +1,15 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public interface ITwitterService
     {
-        Task StartStreamingAsync(CancellationToken token);
+        void Initialize();
+
+        Task StartTweetStreamAsync();
+
+        void PauseTweetStream();
+
+        void StopTweetStream();
     }
 }

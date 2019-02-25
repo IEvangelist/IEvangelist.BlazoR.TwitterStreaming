@@ -6,11 +6,17 @@
 
 @inject ITwitterStreamService StreamService
 
-@if (_tweets == null)
-{
-    <p><em>Waiting for tweet stream to start...</em></p>
-}
-else
+<button class="btn btn-primary" onclick="">
+    <span class="oi oi-media-play"></span> Start
+</button>
+<button class="btn btn-primary" onclick="">
+    <span class="oi oi-media-stop"></span> Stop
+</button>
+<button class="btn btn-primary" onclick="">
+    <span class="oi oi-media-pause"></span> Pause
+</button>
+
+@if (_tweets?.Any() ?? false)
 {
     <div id="tweets">
         <ul>
@@ -22,21 +28,25 @@ else
         </ul>
     </div>
 }
+else
+{
+    <p><em>Waiting for tweets...</em></p>
+}
 
 @functions {
-    readonly List<TweetResult> _tweets = new List<TweetResult>();
-    readonly CancellationTokenSource _cts = new CancellationTokenSource();
+readonly List<TweetResult> _tweets = new List<TweetResult>();
+readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-    protected override async Task OnInitAsync()
-    {
-        await StreamService.SubscribeAsync(OnTweetReceived);
-    }
+protected override async Task OnInitAsync()
+{
+    await StreamService.SubscribeAsync(OnTweetReceived);
+}
 
-    async Task OnTweetReceived(TweetResult tweet)
-    {
-        _tweets.Add(tweet);
-        StateHasChanged();
+async Task OnTweetReceived(TweetResult tweet)
+{
+    _tweets.Add(tweet);
+    StateHasChanged();
 
-        await Task.CompletedTask;
-    }
+    await Task.CompletedTask;
+}
 }
