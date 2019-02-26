@@ -4,7 +4,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public interface ITwitterService
     {
-        void Initialize();
+        Task AddTracksAsync(params string[] tracks);
 
         Task StartTweetStreamAsync();
 

@@ -1,7 +1,7 @@
-﻿using System;
-using IEvangelist.Blazing.SignalR.Server.Hubs;
+﻿using IEvangelist.Blazing.SignalR.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -12,11 +12,9 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public class TwitterService : ITwitterService
     {
-        bool _isInitialized;
-
         readonly ILogger<TwitterService> _logger;
         readonly IHubContext<StreamHub> _hubContext;
-        readonly IFilteredStream _filteredStream;
+        readonly IFilteredStream _filteredStream = Stream.CreateFilteredStream();
 
         public TwitterService(
             ILogger<TwitterService> logger,
@@ -24,7 +22,20 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
         {
             _logger = logger;
             _hubContext = hubContext;
-            _filteredStream = Stream.CreateFilteredStream();
+            
+            WireEventListeners();
+        }
+
+        public async Task AddTracksAsync(params string[] tracks)
+        {
+            PauseTweetStream();
+
+            foreach (var track in tracks)
+            {
+                _filteredStream.AddTrack(track);
+            }
+
+            await StartTweetStreamAsync();
         }
 
         public async Task StartTweetStreamAsync()
@@ -51,18 +62,8 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             }
         }
 
-        public void Initialize()
+        void WireEventListeners()
         {
-            if (_isInitialized)
-            {
-                return;
-            }
-
-            _filteredStream.AddTrack("#developercommunity");
-            _filteredStream.AddTrack("#ndcminnesota");
-            _filteredStream.AddTrack("#signalr");
-            _filteredStream.AddTrack("@davidpine7");
-
             _filteredStream.MatchingTweetReceived += async (sender, args) =>
             {
                 var tweet = Tweet.GetOEmbedTweet(args.Tweet);
@@ -83,37 +84,56 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
                 });
             };
 
-            _filteredStream.DisconnectMessageReceived += (sender, args) =>
+            _filteredStream.DisconnectMessageReceived += async (sender, args) =>
             {
-                _logger.LogWarning("Disconnected from twitter _filteredStream.", args);
+                const string status = "Twitter stream disconnected";
+                _logger.LogWarning(status, args);
+
+                await SendStatusUpdateAsync(status);
             };
 
-            _filteredStream.StreamStarted += (sender, args) =>
+            _filteredStream.StreamStarted += async (sender, args) =>
             {
-                _logger.LogInformation("Twitter stream started.");
+                const string status = "Twitter stream started";
+                _logger.LogInformation(status);
+
+                await SendStatusUpdateAsync(status);
             };
 
-            _filteredStream.StreamStopped += (sender, args) =>
+            _filteredStream.StreamStopped += async (sender, args) =>
             {
-                _logger.LogInformation($"Twitter stream stopped, {args}.");
+                var status = $"Twitter stream stopped, {args.DisconnectMessage}.";
+                _logger.LogInformation(status);
+
+                await SendStatusUpdateAsync(status);
             };
 
-            _filteredStream.StreamResumed += (sender, args) =>
+            _filteredStream.StreamResumed += async (sender, args) =>
             {
-                _logger.LogInformation("Twitter stream resumed.");
+                const string status = "Twitter stream resumed";
+                _logger.LogInformation(status);
+
+                await SendStatusUpdateAsync(status);
             };
 
-            _filteredStream.StreamPaused += (sender, args) =>
+            _filteredStream.StreamPaused += async (sender, args) =>
             {
-                _logger.LogInformation("Twitter stream paused.");
+                const string status = "Twitter stream paused";
+                _logger.LogInformation(status);
+
+                await SendStatusUpdateAsync(status);
             };
 
-            _filteredStream.WarningFallingBehindDetected += (sender, args) =>
+            _filteredStream.WarningFallingBehindDetected += async (sender, args) =>
             {
-                _logger.LogInformation($"Twitter stream falling behind, {args.WarningMessage}.");
-            };
+                var status = $"Twitter stream falling behind, {args.WarningMessage}.";
+                _logger.LogInformation(status);
 
-            _isInitialized = true;
+                await SendStatusUpdateAsync(status);
+            };
         }
+
+        async Task SendStatusUpdateAsync(string status)
+            => await _hubContext.Clients.All.SendAsync("StatusUpdate", status);
     }
 }

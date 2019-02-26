@@ -9,11 +9,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Hubs
     {
         readonly ITwitterService _twitterService;
 
-        public StreamHub(ITwitterService twitterService)
-        {
-            _twitterService = twitterService;
-            _twitterService.Initialize();
-        }
+        public StreamHub(ITwitterService twitterService) => _twitterService = twitterService;
 
         public Task StartTweetStream() => _twitterService.StartTweetStreamAsync();
 

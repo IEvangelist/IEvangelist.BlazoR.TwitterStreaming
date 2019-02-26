@@ -30,23 +30,20 @@
 }
 else
 {
-    <p><em>Waiting for tweets...</em></p>
+    <p>Waiting for tweets...</p>
 }
 
 @functions {
-readonly List<TweetResult> _tweets = new List<TweetResult>();
-readonly CancellationTokenSource _cts = new CancellationTokenSource();
+    readonly List<TweetResult> _tweets = new List<TweetResult>();
 
-protected override async Task OnInitAsync()
-{
-    await StreamService.SubscribeAsync(OnTweetReceived);
-}
+    protected override async Task OnInitAsync() {
+        await StreamService.SubscribeAsync(OnTweetReceived);
+    }
 
-async Task OnTweetReceived(TweetResult tweet)
-{
-    _tweets.Add(tweet);
-    StateHasChanged();
+    Task OnTweetReceived(TweetResult tweet) {
+        _tweets.Add(tweet);
+        StateHasChanged();
 
-    await Task.CompletedTask;
-}
+        return Task.CompletedTask;
+    }
 }
