@@ -2,6 +2,7 @@
 
 @using IEvangelist.Blazing.SignalR.Client.Models
 @using IEvangelist.Blazing.SignalR.Client.Services
+@using Microsoft.JSInterop
 
 @inject ITwitterStreamService StreamService
 
@@ -18,7 +19,7 @@
     <div class="input-group col-8">
         @foreach (var track in _tracks)
         {
-            <span class="badge badge-pill p-3 mr-2 badge-info" onclick=@(() => RemoveTrack(track))>
+            <span class="badge badge-pill p-3 mr-2 badge-dark" onclick=@(() => RemoveTrack(track))>
                 @track
             </span>
         }
@@ -27,13 +28,13 @@
 
 <div class="row">
     <div class="col-4">
-        <button class="btn btn-lg btn-primary" onclick=@StreamService.StartAsync>
+        <button class="btn btn-lg btn-dark" onclick=@StreamService.StartAsync>
             <span class="oi oi-media-play"></span> Start
         </button>
-        <button class="btn btn-lg btn-primary" onclick=@StreamService.StopAsync>
+        <button class="btn btn-lg btn-dark" onclick=@StreamService.StopAsync>
             <span class="oi oi-media-stop"></span> Stop
         </button>
-        <button class="btn btn-lg btn-primary" onclick=
+        <button class="btn btn-lg btn-dark" onclick=
                 @StreamService.PauseAsync>
             <span class="oi oi-media-pause"></span> Pause
         </button>
@@ -47,7 +48,7 @@
 
 @if (_tweets?.Any() ?? false) {
     <div id="tweets">
-        <ul>
+        <ul class="no-bullets">
             @foreach (var tweet in _tweets) {
                 var tweetHTml = new MarkupString(tweet.HTML);
                 <li>@tweetHTml</li>
@@ -84,11 +85,11 @@
         return Task.CompletedTask;
     }
 
-    Task OnTweetReceived(TweetResult tweet) {
+    async Task OnTweetReceived(TweetResult tweet) {
         _tweets.Add(tweet);
         StateHasChanged();
 
-        return Task.CompletedTask;
+        await JSRuntime.Current.InvokeAsync<bool>("twttr.widgets.load");
     }
 
     Task AddTrack() {

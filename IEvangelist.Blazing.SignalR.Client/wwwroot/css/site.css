@@ -109,6 +109,10 @@ app {
     font-size: 16px;
 }
 
+.no-bullets {
+    list-style-type: none;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;

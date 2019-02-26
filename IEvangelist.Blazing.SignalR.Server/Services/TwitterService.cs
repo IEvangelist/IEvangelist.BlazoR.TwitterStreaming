@@ -22,7 +22,8 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
         {
             _logger = logger;
             _hubContext = hubContext;
-            
+            _filteredStream.AddCustomQueryParameter("omit_script", "true");
+
             WireEventListeners();
         }
 
@@ -79,15 +80,18 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             _filteredStream.MatchingTweetReceived += async (sender, args) =>
             {
                 var tweet = Tweet.GetOEmbedTweet(args.Tweet);
-                var index = tweet.HTML.IndexOf("<script", StringComparison.Ordinal);
-                var html = tweet.HTML.Substring(0, index);
+                if (tweet is null)
+                {
+                    return;
+                }
+
                 await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
                 {
                     AuthorName = tweet.AuthorName,
                     AuthorURL = tweet.AuthorURL,
                     CacheAge = tweet.CacheAge,
                     Height = tweet.Height,
-                    HTML = html,
+                    HTML = tweet.HTML,
                     ProviderURL = tweet.ProviderURL,
                     Type = tweet.Type,
                     URL = tweet.URL,
