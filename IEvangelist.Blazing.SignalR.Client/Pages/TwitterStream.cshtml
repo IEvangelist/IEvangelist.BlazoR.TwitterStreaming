@@ -1,43 +1,87 @@
 ﻿@page "/"
 
-@using System.Threading;
 @using IEvangelist.Blazing.SignalR.Client.Models
 @using IEvangelist.Blazing.SignalR.Client.Services
 
 @inject ITwitterStreamService StreamService
 
-<button class="btn btn-primary" onclick="">
-    <span class="oi oi-media-play"></span> Start
-</button>
-<button class="btn btn-primary" onclick="">
-    <span class="oi oi-media-stop"></span> Stop
-</button>
-<button class="btn btn-primary" onclick="">
-    <span class="oi oi-media-pause"></span> Pause
-</button>
+<div class="row mb-lg-3">
+    <div class="input-group col-4">
+        <input type="text" class="form-control" value="@Track"
+               placeholder="#hashtag or @@handle" />
+        <div class="input-group-append">
+            <button class="btn btn-dark" type="button" onclick=@(() => AddTrack())>
+                <span class="oi oi-plus"></span> Add
+            </button>
+        </div>
+    </div>
+    <div class="input-group col-8">
+        @foreach (var track in _tracks)
+        {
+            <span class="badge badge-pill p-3 mr-2 badge-info" onclick=@(() => RemoveTrack(track))>
+                @track
+            </span>
+        }
+    </div>
+</div>
 
-@if (_tweets?.Any() ?? false)
-{
+<div class="row">
+    <div class="col-4">
+        <button class="btn btn-lg btn-primary" onclick=@StreamService.StartAsync>
+            <span class="oi oi-media-play"></span> Start
+        </button>
+        <button class="btn btn-lg btn-primary" onclick=@StreamService.StopAsync>
+            <span class="oi oi-media-stop"></span> Stop
+        </button>
+        <button class="btn btn-lg btn-primary" onclick=
+                @StreamService.PauseAsync>
+            <span class="oi oi-media-pause"></span> Pause
+        </button>
+    </div>
+    <div class="col-8">
+        <div class="alert alert-dark" role="alert">
+            @_status
+        </div>
+    </div>
+</div>
+
+@if (_tweets?.Any() ?? false) {
     <div id="tweets">
         <ul>
-            @foreach (var tweet in _tweets)
-            {
+            @foreach (var tweet in _tweets) {
                 var tweetHTml = new MarkupString(tweet.HTML);
                 <li>@tweetHTml</li>
             }
         </ul>
     </div>
 }
-else
-{
-    <p>Waiting for tweets...</p>
-}
 
 @functions {
+    string _status = "Waiting for tweets...";
+
+    readonly List<string> _tracks = new List<string> {
+        "#developercommunity",
+        "#ndcminnesota",
+        "#signalr",
+        "@davidpine7"
+    };
+
     readonly List<TweetResult> _tweets = new List<TweetResult>();
 
-    protected override async Task OnInitAsync() {
-        await StreamService.SubscribeAsync(OnTweetReceived);
+    public string Track { get; set; }
+
+    protected override Task OnInitAsync() {
+        StreamService.HandleTweets(OnTweetReceived);
+        StreamService.HandleStatusUpdates(OnStatusUpdated);
+
+        return StreamService.AddTracksAsync(_tracks);
+    }
+
+    Task OnStatusUpdated(string status) {
+        _status = status;
+        StateHasChanged();
+
+        return Task.CompletedTask;
     }
 
     Task OnTweetReceived(TweetResult tweet) {
@@ -45,5 +89,23 @@ else
         StateHasChanged();
 
         return Task.CompletedTask;
+    }
+
+    Task AddTrack() {
+        if (string.IsNullOrWhiteSpace(Track)) {
+            return Task.CompletedTask;
+        }
+
+        _tracks.Add(Track);
+
+        Track = null;
+
+        return StreamService.AddTracksAsync(_tracks);
+    }
+
+    Task RemoveTrack(string track) {
+        _tracks.Remove(track);
+
+        return StreamService.RemoveTrackAsync(track);
     }
 }

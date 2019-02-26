@@ -105,6 +105,10 @@ app {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+.badge {
+    font-size: 16px;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;

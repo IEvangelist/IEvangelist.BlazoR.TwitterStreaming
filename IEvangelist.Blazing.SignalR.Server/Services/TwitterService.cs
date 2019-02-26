@@ -26,13 +26,25 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             WireEventListeners();
         }
 
-        public async Task AddTracksAsync(params string[] tracks)
+        public Task RemoveTracksAsync(params string[] tracks)
+            => HandleTracksAsync(false, tracks);
+
+        public Task AddTracksAsync(params string[] tracks)
+            => HandleTracksAsync(true, tracks);
+
+        async Task HandleTracksAsync(bool add, params string[] tracks)
         {
             PauseTweetStream();
-
             foreach (var track in tracks)
             {
-                _filteredStream.AddTrack(track);
+                if (add)
+                {
+                    _filteredStream.AddTrack(track);
+                }
+                else
+                {
+                    _filteredStream.RemoveTrack(track);
+                }
             }
 
             await StartTweetStreamAsync();
@@ -133,7 +145,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             };
         }
 
-        async Task SendStatusUpdateAsync(string status)
-            => await _hubContext.Clients.All.SendAsync("StatusUpdate", status);
+        Task SendStatusUpdateAsync(string status)
+            => _hubContext.Clients.All.SendAsync("StatusUpdated", status);
     }
 }
