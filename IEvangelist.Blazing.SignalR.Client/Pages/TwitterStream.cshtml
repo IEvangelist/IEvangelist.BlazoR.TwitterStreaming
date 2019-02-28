@@ -48,7 +48,7 @@
 
 @if (_tweets?.Any() ?? false) {
     <div id="tweets">
-        <ul class="no-bullets">
+        <ul class="reversed no-bullets">
             @foreach (var tweet in _tweets) {
                 var tweetHTml = new MarkupString(tweet.HTML);
                 <li>@tweetHTml</li>
