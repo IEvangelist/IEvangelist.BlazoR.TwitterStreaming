@@ -1,10 +1,10 @@
 ﻿using IEvangelist.Blazing.SignalR.Server.Hubs;
+using IEvangelist.Blazing.SignalR.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using IEvangelist.Blazing.SignalR.Shared;
 using Tweetinvi;
 using Tweetinvi.Events;
 using Tweetinvi.Models;
@@ -135,7 +135,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnDisconnectedMessageReceived(object sender, DisconnectedEventArgs args)
         {
-            const string status = "Twitter stream disconnected";
+            const string status = "Twitter stream disconnected...";
             _logger.LogWarning(status, args);
 
             await SendStatusUpdateAsync(status);
@@ -143,7 +143,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnStreamStarted(object sender, EventArgs args)
         {
-            const string status = "Twitter stream started";
+            const string status = "Twitter stream started...";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);
@@ -151,7 +151,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnStreamStopped(object sender, StreamExceptionEventArgs args)
         {
-            var status = $"Twitter stream stopped, {args.DisconnectMessage}.";
+            var status = $"Twitter stream stopped, {args.DisconnectMessage}...";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);
@@ -159,7 +159,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnStreamResumed(object sender, EventArgs e)
         {
-            const string status = "Twitter stream resumed";
+            const string status = "Twitter stream resumed...";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);
@@ -167,7 +167,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnStreamPaused(object sender, EventArgs e)
         {
-            const string status = "Twitter stream paused";
+            const string status = "Twitter stream paused...";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);
@@ -175,7 +175,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnFallingBehindDetected(object sender, WarningFallingBehindEventArgs args)
         {
-            var status = $"Twitter stream falling behind, {args.WarningMessage}.";
+            var status = $"Twitter stream falling behind, {args.WarningMessage}...";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);

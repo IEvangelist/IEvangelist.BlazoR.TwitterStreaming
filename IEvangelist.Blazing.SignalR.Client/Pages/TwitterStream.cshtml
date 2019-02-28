@@ -1,14 +1,9 @@
 ﻿@page "/"
-
-@using IEvangelist.Blazing.SignalR.Shared
-@using IEvangelist.Blazing.SignalR.Client.Services
-@using Microsoft.JSInterop
-
-@inject ITwitterStreamService StreamService
+@inherits TwitterStreamComponent
 
 <div class="row mb-lg-3">
     <div class="input-group col-4">
-        <input type="text" class="form-control" value=@Track
+        <input type="text" class="form-control"
                placeholder="#hashtag or @@handle" />
         <div class="input-group-append">
             <button class="btn btn-dark" type="button" onclick=@(() => AddTrack())>
@@ -17,7 +12,7 @@
         </div>
     </div>
     <div class="input-group col-8">
-        @foreach (var track in _tracks)
+        @foreach (var track in Tracks)
         {
             <span class="badge badge-pill p-3 mr-2 badge-dark clickable"
                   title="Click to remove '@(track)'." onclick=@(() => RemoveTrack(track))>
@@ -41,72 +36,20 @@
     </div>
     <div class="col-8">
         <div class="alert alert-info" role="alert">
-            @_status
+            @Status
         </div>
     </div>
 </div>
 
-@if (_tweets?.Any() ?? false) {
+@if (Tweets?.Any() ?? false)
+{
     <div id="tweets">
         <ul class="reversed no-bullets">
-            @foreach (var tweet in _tweets) {
+            @foreach (var tweet in Tweets)
+            {
                 var tweetHTml = new MarkupString(tweet.HTML);
                 <li>@tweetHTml</li>
             }
         </ul>
     </div>
-}
-
-@functions {
-    string _status = "Waiting for tweets...";
-
-    readonly List<string> _tracks = new List<string> {
-        "#developercommunity",
-        "#ndcminnesota",
-        "#signalr",
-        "@davidpine7"
-    };
-
-    readonly List<TweetResult> _tweets = new List<TweetResult>();
-
-    public string Track { get; set; }
-
-    protected override Task OnInitAsync() {
-        StreamService.HandleTweets(OnTweetReceived);
-        StreamService.HandleStatusUpdates(OnStatusUpdated);
-
-        return StreamService.AddTracksAsync(_tracks);
-    }
-
-    Task OnStatusUpdated(string status) {
-        _status = status;
-        StateHasChanged();
-
-        return Task.CompletedTask;
-    }
-
-    async Task OnTweetReceived(TweetResult tweet) {
-        _tweets.Add(tweet);
-        StateHasChanged();
-
-        await JSRuntime.Current.InvokeAsync<bool>("twttr.widgets.load");
-    }
-
-    Task AddTrack() {
-        if (string.IsNullOrWhiteSpace(Track)) {
-            return Task.CompletedTask;
-        }
-
-        _tracks.Add(Track);
-
-        Track = null;
-
-        return StreamService.AddTracksAsync(_tracks);
-    }
-
-    Task RemoveTrack(string track) {
-        _tracks.Remove(track);
-
-        return StreamService.RemoveTrackAsync(track);
-    }
 }
