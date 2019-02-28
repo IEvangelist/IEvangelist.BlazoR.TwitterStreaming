@@ -1,4 +1,4 @@
-﻿namespace IEvangelist.Blazing.SignalR.Client.Models
+﻿namespace IEvangelist.Blazing.SignalR.Shared
 {
     public class TweetResult
     {

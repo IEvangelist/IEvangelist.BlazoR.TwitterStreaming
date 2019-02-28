@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IEvangelist.Blazing.SignalR.Client.Models;
+using IEvangelist.Blazing.SignalR.Shared;
 
 namespace IEvangelist.Blazing.SignalR.Client.Services
 {

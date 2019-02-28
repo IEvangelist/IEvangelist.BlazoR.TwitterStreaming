@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IEvangelist.Blazing.SignalR.Client\IEvangelist.Blazing.SignalR.Client.csproj" />
+    <ProjectReference Include="..\IEvangelist.Blazing.SignalR.Shared\IEvangelist.Blazing.SignalR.Shared.csproj" />
   </ItemGroup>
 
 </Project>

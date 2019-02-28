@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using IEvangelist.Blazing.SignalR.Shared;
 using Tweetinvi;
 using Tweetinvi.Events;
 using Tweetinvi.Models;
 using Tweetinvi.Streaming;
-using TweetResult = IEvangelist.Blazing.SignalR.Server.Models.TweetResult;
 
 namespace IEvangelist.Blazing.SignalR.Server.Services
 {

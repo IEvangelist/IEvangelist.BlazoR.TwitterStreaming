@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.7.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\IEvangelist.Blazing.SignalR.Shared\IEvangelist.Blazing.SignalR.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
