@@ -11,6 +11,7 @@ using System;
 using System.Linq;
 using System.Net.Mime;
 using Tweetinvi;
+using Tweetinvi.Streaming;
 
 namespace IEvangelist.Blazing.SignalR.Server
 {
@@ -44,6 +45,7 @@ namespace IEvangelist.Blazing.SignalR.Server
                 _configuration["Authentication:Twitter:AccessTokenSecret"]);
 
             services.AddSingleton<ITwitterService, TwitterService>();
+            services.AddSingleton<IFilteredStream>(_ => Stream.CreateFilteredStream());
 
             services.AddMvc().AddJsonOptions(options =>
             {

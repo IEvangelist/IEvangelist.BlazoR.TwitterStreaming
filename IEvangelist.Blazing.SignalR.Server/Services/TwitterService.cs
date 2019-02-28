@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Tweetinvi;
+using Tweetinvi.Events;
 using Tweetinvi.Models;
 using Tweetinvi.Streaming;
 using TweetResult = IEvangelist.Blazing.SignalR.Server.Models.TweetResult;
@@ -14,17 +16,18 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
     {
         readonly ILogger<TwitterService> _logger;
         readonly IHubContext<StreamHub> _hubContext;
-        readonly IFilteredStream _filteredStream = Stream.CreateFilteredStream();
+        readonly IFilteredStream _filteredStream;
 
         public TwitterService(
             ILogger<TwitterService> logger,
-            IHubContext<StreamHub> hubContext)
+            IHubContext<StreamHub> hubContext,
+            IFilteredStream filteredStream)
         {
             _logger = logger;
             _hubContext = hubContext;
-            _filteredStream.AddCustomQueryParameter("omit_script", "true");
-
-            WireEventListeners();
+            _filteredStream = filteredStream;
+            
+            InitializeStream();
         }
 
         public Task RemoveTracksAsync(params string[] tracks)
@@ -75,78 +78,107 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             }
         }
 
-        void WireEventListeners()
+        void InitializeStream()
         {
-            _filteredStream.MatchingTweetReceived += async (sender, args) =>
+            _filteredStream.AddCustomQueryParameter("omit_script", "true");
+            _filteredStream.NonMatchingTweetReceived += OnNonMatchingTweetReceived;
+            _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
+            _filteredStream.DisconnectMessageReceived += OnDisconnectedMessageReceived;
+            _filteredStream.StreamStarted += OnStreamStarted;
+            _filteredStream.StreamStopped += OnStreamStopped;
+            _filteredStream.StreamResumed += OnStreamResumed;
+            _filteredStream.StreamPaused += OnStreamPaused;
+            _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
+        }
+
+        void OnNonMatchingTweetReceived(object sender, TweetEventArgs args)
+        {
+            if (args is null)
             {
-                var tweet = Tweet.GetOEmbedTweet(args.Tweet);
-                if (tweet is null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
-                {
-                    AuthorName = tweet.AuthorName,
-                    AuthorURL = tweet.AuthorURL,
-                    CacheAge = tweet.CacheAge,
-                    Height = tweet.Height,
-                    HTML = tweet.HTML,
-                    ProviderURL = tweet.ProviderURL,
-                    Type = tweet.Type,
-                    URL = tweet.URL,
-                    Version = tweet.Version,
-                    Width = tweet.Width
-                });
-            };
-
-            _filteredStream.DisconnectMessageReceived += async (sender, args) =>
+            var tweet = Tweet.GetOEmbedTweet(args.Tweet);
+            if (tweet is null)
             {
-                const string status = "Twitter stream disconnected";
-                _logger.LogWarning(status, args);
+                return;
+            }
 
-                await SendStatusUpdateAsync(status);
-            };
-
-            _filteredStream.StreamStarted += async (sender, args) =>
+            if (Debugger.IsAttached)
             {
-                const string status = "Twitter stream started";
-                _logger.LogInformation(status);
+                Debugger.Break();
+            }
+        }
 
-                await SendStatusUpdateAsync(status);
-            };
-
-            _filteredStream.StreamStopped += async (sender, args) =>
+        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args)
+        {
+            var tweet = Tweet.GetOEmbedTweet(args.Tweet);
+            if (tweet is null)
             {
-                var status = $"Twitter stream stopped, {args.DisconnectMessage}.";
-                _logger.LogInformation(status);
+                return;
+            }
 
-                await SendStatusUpdateAsync(status);
-            };
-
-            _filteredStream.StreamResumed += async (sender, args) =>
+            await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
             {
-                const string status = "Twitter stream resumed";
-                _logger.LogInformation(status);
+                AuthorName = tweet.AuthorName,
+                AuthorURL = tweet.AuthorURL,
+                CacheAge = tweet.CacheAge,
+                Height = tweet.Height,
+                HTML = tweet.HTML,
+                ProviderURL = tweet.ProviderURL,
+                Type = tweet.Type,
+                URL = tweet.URL,
+                Version = tweet.Version,
+                Width = tweet.Width
+            });
+        }
 
-                await SendStatusUpdateAsync(status);
-            };
+        async void OnDisconnectedMessageReceived(object sender, DisconnectedEventArgs args)
+        {
+            const string status = "Twitter stream disconnected";
+            _logger.LogWarning(status, args);
 
-            _filteredStream.StreamPaused += async (sender, args) =>
-            {
-                const string status = "Twitter stream paused";
-                _logger.LogInformation(status);
+            await SendStatusUpdateAsync(status);
+        }
 
-                await SendStatusUpdateAsync(status);
-            };
+        async void OnStreamStarted(object sender, EventArgs args)
+        {
+            const string status = "Twitter stream started";
+            _logger.LogInformation(status);
 
-            _filteredStream.WarningFallingBehindDetected += async (sender, args) =>
-            {
-                var status = $"Twitter stream falling behind, {args.WarningMessage}.";
-                _logger.LogInformation(status);
+            await SendStatusUpdateAsync(status);
+        }
 
-                await SendStatusUpdateAsync(status);
-            };
+        async void OnStreamStopped(object sender, StreamExceptionEventArgs args)
+        {
+            var status = $"Twitter stream stopped, {args.DisconnectMessage}.";
+            _logger.LogInformation(status);
+
+            await SendStatusUpdateAsync(status);
+        }
+
+        async void OnStreamResumed(object sender, EventArgs e)
+        {
+            const string status = "Twitter stream resumed";
+            _logger.LogInformation(status);
+
+            await SendStatusUpdateAsync(status);
+        }
+
+        async void OnStreamPaused(object sender, EventArgs e)
+        {
+            const string status = "Twitter stream paused";
+            _logger.LogInformation(status);
+
+            await SendStatusUpdateAsync(status);
+        }
+
+        async void OnFallingBehindDetected(object sender, WarningFallingBehindEventArgs args)
+        {
+            var status = $"Twitter stream falling behind, {args.WarningMessage}.";
+            _logger.LogInformation(status);
+
+            await SendStatusUpdateAsync(status);
         }
 
         Task SendStatusUpdateAsync(string status)

@@ -8,7 +8,7 @@
 
 <div class="row mb-lg-3">
     <div class="input-group col-4">
-        <input type="text" class="form-control" value="@Track"
+        <input type="text" class="form-control" value=@Track
                placeholder="#hashtag or @@handle" />
         <div class="input-group-append">
             <button class="btn btn-dark" type="button" onclick=@(() => AddTrack())>
@@ -19,7 +19,8 @@
     <div class="input-group col-8">
         @foreach (var track in _tracks)
         {
-            <span class="badge badge-pill p-3 mr-2 badge-dark" onclick=@(() => RemoveTrack(track))>
+            <span class="badge badge-pill p-3 mr-2 badge-dark clickable"
+                  title="Click to remove '@(track)'." onclick=@(() => RemoveTrack(track))>
                 @track
             </span>
         }
@@ -34,13 +35,12 @@
         <button class="btn btn-lg btn-dark" onclick=@StreamService.StopAsync>
             <span class="oi oi-media-stop"></span> Stop
         </button>
-        <button class="btn btn-lg btn-dark" onclick=
-                @StreamService.PauseAsync>
+        <button class="btn btn-lg btn-dark" onclick=@StreamService.PauseAsync>
             <span class="oi oi-media-pause"></span> Pause
         </button>
     </div>
     <div class="col-8">
-        <div class="alert alert-dark" role="alert">
+        <div class="alert alert-info" role="alert">
             @_status
         </div>
     </div>

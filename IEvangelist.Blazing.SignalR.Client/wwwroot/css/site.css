@@ -109,8 +109,18 @@ app {
     font-size: 16px;
 }
 
+.clickable {
+    cursor: pointer;
+    transition: ease-in-out all .2s;
+}
+
+    .clickable:not([disabled]):hover {
+        background-color: #000;
+    }
+
 .no-bullets {
     list-style-type: none;
+    padding-left: 0;
 }
 
 @media (max-width: 767.98px) {
