@@ -2,6 +2,7 @@
 {
     public class TweetResult
     {
+        public bool IsOffTopic { get; set; }
         public string AuthorName { get; set; }
         public string AuthorURL { get; set; }
         public string HTML { get; set; }

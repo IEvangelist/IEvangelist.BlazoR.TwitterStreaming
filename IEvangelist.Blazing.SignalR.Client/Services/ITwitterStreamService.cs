@@ -7,7 +7,7 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
 {
     public interface ITwitterStreamService
     {
-        void HandleStatusUpdates(Func<string, Task> handler);
+        void HandleStatusUpdates(Func<Status, Task> handler);
 
         void HandleTweets(Func<TweetResult, Task> handler);
 

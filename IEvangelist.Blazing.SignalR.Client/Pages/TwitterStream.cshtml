@@ -3,11 +3,10 @@
 
 <div class="row mb-lg-3">
     <div class="input-group col-4">
-        <input type="text" class="form-control"
-               placeholder="#hashtag or @@handle" />
+        <input id="track" type="text" class="form-control" placeholder="@@handle or #hashtag" />
         <div class="input-group-append">
-            <button class="btn btn-dark" type="button" onclick=@(() => AddTrack())>
-                <span class="oi oi-plus"></span> Add
+            <button class="btn btn-dark" type="button" onclick=@AddTrack>
+                <span class="oi oi-plus mr-2"></span> Add
             </button>
         </div>
     </div>
@@ -24,14 +23,14 @@
 
 <div class="row">
     <div class="col-4">
-        <button class="btn btn-lg btn-dark" onclick=@StreamService.StartAsync>
-            <span class="oi oi-media-play"></span> Start
+        <button class="btn btn-lg btn-dark mr-2" disabled=@IsStreaming onclick=@StreamService.StartAsync>
+            <span class="oi oi-media-play mr-2"></span> Start
         </button>
-        <button class="btn btn-lg btn-dark" onclick=@StreamService.StopAsync>
-            <span class="oi oi-media-stop"></span> Stop
+        <button class="btn btn-lg btn-dark mr-2" disabled=@(!IsStreaming) onclick=@StreamService.StopAsync>
+            <span class="oi oi-media-stop mr-2"></span> Stop
         </button>
-        <button class="btn btn-lg btn-dark" onclick=@StreamService.PauseAsync>
-            <span class="oi oi-media-pause"></span> Pause
+        <button class="btn btn-lg btn-dark" disabled=@(!IsStreaming) onclick=@StreamService.PauseAsync>
+            <span class="oi oi-media-pause mr-2"></span> Pause
         </button>
     </div>
     <div class="col-8">
@@ -41,15 +40,31 @@
     </div>
 </div>
 
-@if (Tweets?.Any() ?? false)
-{
-    <div id="tweets">
-        <ul class="reversed no-bullets">
-            @foreach (var tweet in Tweets)
-            {
-                var tweetHTml = new MarkupString(tweet.HTML);
-                <li>@tweetHTml</li>
-            }
-        </ul>
-    </div>
-}
+<div class="row">
+    @if (Tweets?.Any() ?? false)
+    {
+        <div class="col-6">
+            <h2>Filtered Tweets</h2>
+            <ul class="reversed no-bullets">
+                @foreach (var tweet in Tweets)
+                {
+                    var tweetHTml = new MarkupString(tweet.HTML);
+                    <li>@tweetHTml</li>
+                }
+            </ul>
+        </div>
+    }
+    @if (OffTopicTweets?.Any() ?? false)
+    {
+        <div class="col-6">
+            <h2>Off Topic Tweets</h2>
+            <ul class="reversed no-bullets">
+                @foreach (var tweet in OffTopicTweets)
+                {
+                    var tweetHTml = new MarkupString(tweet.HTML);
+                    <li>@tweetHTml</li>
+                }
+            </ul>
+        </div>
+    }
+</div>

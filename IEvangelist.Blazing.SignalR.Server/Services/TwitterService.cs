@@ -3,7 +3,6 @@ using IEvangelist.Blazing.SignalR.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Events;
@@ -38,7 +37,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async Task HandleTracksAsync(bool add, params string[] tracks)
         {
-            PauseTweetStream();
+            StopTweetStream();
             foreach (var track in tracks)
             {
                 if (add)
@@ -91,7 +90,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
         }
 
-        void OnNonMatchingTweetReceived(object sender, TweetEventArgs args)
+        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args)
         {
             if (args is null)
             {
@@ -104,14 +103,29 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
                 return;
             }
 
-            if (Debugger.IsAttached)
+            await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
             {
-                Debugger.Break();
-            }
+                IsOffTopic = true,
+                AuthorName = tweet.AuthorName,
+                AuthorURL = tweet.AuthorURL,
+                CacheAge = tweet.CacheAge,
+                Height = tweet.Height,
+                HTML = tweet.HTML,
+                ProviderURL = tweet.ProviderURL,
+                Type = tweet.Type,
+                URL = tweet.URL,
+                Version = tweet.Version,
+                Width = tweet.Width
+            });
         }
 
         async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args)
         {
+            if (args is null)
+            {
+                return;
+            }
+
             var tweet = Tweet.GetOEmbedTweet(args.Tweet);
             if (tweet is null)
             {
@@ -181,7 +195,13 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             await SendStatusUpdateAsync(status);
         }
 
-        Task SendStatusUpdateAsync(string status)
-            => _hubContext.Clients.All.SendAsync("StatusUpdated", status);
+        async Task SendStatusUpdateAsync(string status)
+            => await _hubContext.Clients.All.SendAsync(
+                "StatusUpdated",
+                new Status
+                {
+                    IsStreaming = _filteredStream.StreamState == StreamState.Running,
+                    Message = status
+                });
     }
 }

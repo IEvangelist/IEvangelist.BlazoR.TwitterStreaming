@@ -3,27 +3,30 @@ using System.Threading.Tasks;
 using IEvangelist.Blazing.SignalR.Client.Services;
 using IEvangelist.Blazing.SignalR.Shared;
 using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
 namespace IEvangelist.Blazing.SignalR.Client.Pages
 {
     public class TwitterStreamComponent : BlazorComponent
     {
+        protected bool IsStreaming;
         protected string Status = "Waiting for tweets...";
 
+        protected readonly List<TweetResult> OffTopicTweets = new List<TweetResult>();
         protected readonly List<TweetResult> Tweets = new List<TweetResult>();
         protected readonly List<string> Tracks = new List<string>
         {
-            "#developercommunity",
-            "#ndcminnesota",
-            "#signalr",
-            "@davidpine7"
+            "#DeveloperCommunity",
+            "#NDCMinnesota",
+            "#SignalR",
+            "@DavidPine7"
         };
 
         [Inject]
         protected ITwitterStreamService StreamService { get; set; }
-
-        public string Track { get; set; } = string.Empty;
+        [Inject]
+        protected ILogger<TwitterStreamComponent> Logger { get; set; }
 
         protected override Task OnInitAsync()
         {
@@ -33,42 +36,50 @@ namespace IEvangelist.Blazing.SignalR.Client.Pages
             return StreamService.AddTracksAsync(Tracks);
         }
 
-        protected Task OnStatusUpdated(string status)
+        async Task OnStatusUpdated(Status status)
         {
-            Status = status;
+            Logger.LogInformation($"Status: IsStreaming {status.IsStreaming}, Message {status.Message}.");
+
+            Status = status.Message;
+            IsStreaming = status.IsStreaming;
+
             StateHasChanged();
 
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
 
-        protected async Task OnTweetReceived(TweetResult tweet)
+        async Task OnTweetReceived(TweetResult tweet)
         {
-            Tweets.Add(tweet);
+            if (tweet.IsOffTopic)
+            {
+                OffTopicTweets.Add(tweet);
+            }
+            else
+            {
+                Tweets.Add(tweet);
+            }
+
             StateHasChanged();
 
             await JSRuntime.Current.InvokeAsync<bool>("twttr.widgets.load");
         }
 
-        protected void OnTrackChanged(string track) => Track = track ?? string.Empty;
-
-        protected Task AddTrack()
+        protected async Task AddTrack()
         {
-            if (string.IsNullOrWhiteSpace(Track))
-            {
-                return Task.CompletedTask;
-            }
+            var track = await JSRuntime.Current.InvokeAsync<string>("getAndClearTrack");
 
-            Tracks.Add(Track);
-            Track = string.Empty;
+            Tracks.Add(track);
+            StateHasChanged();
 
-            return StreamService.AddTracksAsync(Tracks);
+            await StreamService.AddTracksAsync(Tracks);
         }
 
-        protected Task RemoveTrack(string track)
+        protected async Task RemoveTrack(string track)
         {
             Tracks.Remove(track);
+            StateHasChanged();
 
-            return StreamService.RemoveTrackAsync(track);
+            await StreamService.RemoveTrackAsync(track);
         }
     }
 }

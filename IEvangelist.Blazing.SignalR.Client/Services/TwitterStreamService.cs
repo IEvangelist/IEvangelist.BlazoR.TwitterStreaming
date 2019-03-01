@@ -26,7 +26,7 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
         public void HandleTweets(Func<TweetResult, Task> handler) 
             => _connection.On("TweetReceived", handler);
 
-        public void HandleStatusUpdates(Func<string, Task> handler)
+        public void HandleStatusUpdates(Func<Status, Task> handler)
             => _connection.On("StatusUpdated", handler);
 
         public async Task AddTracksAsync(List<string> tracks)

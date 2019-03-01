@@ -28,6 +28,17 @@
             return t;
         }(document, "script", "twitter-wjs"));
     </script>
+    <script>
+        window.getAndClearTrack = () => {
+            const track = document.getElementById('track');
+            if (track) {
+                const value = track.value;
+                track.value = '';
+                return value;
+            }
+            return null;
+        };
+    </script>
     <app>
         <div class="grid">
             <div class="grid-content">
