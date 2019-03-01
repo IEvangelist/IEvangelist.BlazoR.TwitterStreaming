@@ -38,14 +38,14 @@ namespace IEvangelist.Blazing.SignalR.Server
                 });
             });
 
-            Auth.SetUserCredentials(
-                _configuration["Authentication:Twitter:ConsumerKey"],
-                _configuration["Authentication:Twitter:ConsumerSecret"],
-                _configuration["Authentication:Twitter:AccessToken"],
-                _configuration["Authentication:Twitter:AccessTokenSecret"]);
+            //Auth.SetUserCredentials(
+            //    _configuration["Authentication:Twitter:ConsumerKey"],
+            //    _configuration["Authentication:Twitter:ConsumerSecret"],
+            //    _configuration["Authentication:Twitter:AccessToken"],
+            //    _configuration["Authentication:Twitter:AccessTokenSecret"]);
 
             services.AddSingleton<ITwitterService, TwitterService>();
-            services.AddSingleton<IFilteredStream>(_ => Stream.CreateFilteredStream());
+            //services.AddSingleton<IFilteredStream>(_ => Stream.CreateFilteredStream());
 
             services.AddMvc().AddJsonOptions(options =>
             {
