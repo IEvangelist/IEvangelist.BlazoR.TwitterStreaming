@@ -90,14 +90,20 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
         }
 
-        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args)
+        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args) 
+            => await BroadcastTweet(args?.Tweet, true);
+
+        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args) 
+            => await BroadcastTweet(args?.Tweet, false);
+
+        async Task BroadcastTweet(ITweet iTweet, bool isOffTopic)
         {
-            if (args is null)
+            if (iTweet is null)
             {
                 return;
             }
 
-            var tweet = Tweet.GetOEmbedTweet(args.Tweet);
+            var tweet = Tweet.GetOEmbedTweet(iTweet);
             if (tweet is null)
             {
                 return;
@@ -105,35 +111,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
             await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
             {
-                IsOffTopic = true,
-                AuthorName = tweet.AuthorName,
-                AuthorURL = tweet.AuthorURL,
-                CacheAge = tweet.CacheAge,
-                Height = tweet.Height,
-                HTML = tweet.HTML,
-                ProviderURL = tweet.ProviderURL,
-                Type = tweet.Type,
-                URL = tweet.URL,
-                Version = tweet.Version,
-                Width = tweet.Width
-            });
-        }
-
-        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args)
-        {
-            if (args is null)
-            {
-                return;
-            }
-
-            var tweet = Tweet.GetOEmbedTweet(args.Tweet);
-            if (tweet is null)
-            {
-                return;
-            }
-
-            await _hubContext.Clients.All.SendAsync("TweetReceived", new TweetResult
-            {
+                IsOffTopic = isOffTopic,
                 AuthorName = tweet.AuthorName,
                 AuthorURL = tweet.AuthorURL,
                 CacheAge = tweet.CacheAge,
