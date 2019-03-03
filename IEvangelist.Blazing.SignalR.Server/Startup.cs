@@ -17,12 +17,12 @@ namespace IEvangelist.Blazing.SignalR.Server
 {
     public class Startup
     {
+        const string CorsPolicy = nameof(CorsPolicy);
+
         readonly IConfiguration _configuration;
 
         public Startup(IConfiguration configuration) => _configuration = configuration;
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddConnections();
@@ -47,14 +47,15 @@ namespace IEvangelist.Blazing.SignalR.Server
             services.AddSingleton<ITwitterService, TwitterService>();
             services.AddSingleton<IFilteredStream>(_ => Stream.CreateFilteredStream());
 
-            services.AddMvc().AddJsonOptions(options =>
-            {
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-            });
+            services.AddMvc()
+                    .AddJsonOptions(
+                         options =>
+                             options.SerializerSettings
+                                    .ContractResolver = new DefaultContractResolver());
 
             services.AddCors(
                 options =>
-                options.AddPolicy("CorsPolicy",
+                options.AddPolicy(CorsPolicy,
                     builder =>
                     builder.AllowAnyMethod()
                            .AllowAnyHeader()
@@ -62,7 +63,6 @@ namespace IEvangelist.Blazing.SignalR.Server
                            .AllowCredentials()));
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseResponseCompression();
@@ -74,15 +74,10 @@ namespace IEvangelist.Blazing.SignalR.Server
 
             app.UseHttpsRedirection();
             app.UseCookiePolicy();
-            app.UseCors("CorsPolicy");
+            app.UseCors(CorsPolicy);
 
             app.UseSignalR(routes => routes.MapHub<StreamHub>("/streamHub"));
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(name: "default", template: "{controller}/{action}/{id?}");
-            });
-
+            app.UseMvc(routes => routes.MapRoute("default", "{controller}/{action}/{id?}"));
             app.UseBlazor<Client.Startup>();
         }
     }

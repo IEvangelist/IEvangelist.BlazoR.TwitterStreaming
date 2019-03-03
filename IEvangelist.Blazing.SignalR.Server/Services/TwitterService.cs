@@ -25,7 +25,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             _logger = logger;
             _hubContext = hubContext;
             _filteredStream = filteredStream;
-            
+
             InitializeStream();
         }
 
@@ -80,9 +80,9 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
         void InitializeStream()
         {
             _filteredStream.AddCustomQueryParameter("omit_script", "true");
-            _filteredStream.NonMatchingTweetReceived += OnNonMatchingTweetReceived;
-            _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
             _filteredStream.DisconnectMessageReceived += OnDisconnectedMessageReceived;
+            _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
+            _filteredStream.NonMatchingTweetReceived += OnNonMatchingTweetReceived;
             _filteredStream.StreamStarted += OnStreamStarted;
             _filteredStream.StreamStopped += OnStreamStopped;
             _filteredStream.StreamResumed += OnStreamResumed;
@@ -90,10 +90,10 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
         }
 
-        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args) 
+        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args)
             => await BroadcastTweet(args?.Tweet, true);
 
-        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args) 
+        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args)
             => await BroadcastTweet(args?.Tweet, false);
 
         async Task BroadcastTweet(ITweet iTweet, bool isOffTopic)
@@ -127,7 +127,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnDisconnectedMessageReceived(object sender, DisconnectedEventArgs args)
         {
-            const string status = "Twitter stream disconnected...";
+            var status = $"Twitter stream disconnected, {args.DisconnectMessage}...";
             _logger.LogWarning(status, args);
 
             await SendStatusUpdateAsync(status);
@@ -149,7 +149,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             await SendStatusUpdateAsync(status);
         }
 
-        async void OnStreamResumed(object sender, EventArgs e)
+        async void OnStreamResumed(object sender, EventArgs args)
         {
             const string status = "Twitter stream resumed...";
             _logger.LogInformation(status);
@@ -157,7 +157,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             await SendStatusUpdateAsync(status);
         }
 
-        async void OnStreamPaused(object sender, EventArgs e)
+        async void OnStreamPaused(object sender, EventArgs args)
         {
             const string status = "Twitter stream paused...";
             _logger.LogInformation(status);
