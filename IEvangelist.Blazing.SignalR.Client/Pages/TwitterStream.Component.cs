@@ -18,9 +18,10 @@ namespace IEvangelist.Blazing.SignalR.Client.Pages
         protected readonly List<string> Tracks = new List<string>
         {
             "#DeveloperCommunity",
-            "#NDCMinnesota",
             "#SignalR",
-            "@DavidPine7"
+            "@aspnet",
+            "@wi_ineta",
+            "@davidpine7"
         };
 
         [Inject]

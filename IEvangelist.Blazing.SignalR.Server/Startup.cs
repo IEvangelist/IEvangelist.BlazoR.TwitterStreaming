@@ -10,6 +10,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Linq;
 using System.Net.Mime;
+using Microsoft.AspNetCore.Http.Connections;
 using Tweetinvi;
 using Tweetinvi.Streaming;
 
@@ -45,6 +46,7 @@ namespace IEvangelist.Blazing.SignalR.Server
                 _configuration["Authentication:Twitter:AccessTokenSecret"]);
 
             services.AddSingleton<ITwitterService, TwitterService>();
+            services.AddSingleton<ISentimentService, SentimentService>();
             services.AddSingleton<IFilteredStream>(_ => Stream.CreateFilteredStream());
 
             services.AddMvc()
@@ -76,7 +78,14 @@ namespace IEvangelist.Blazing.SignalR.Server
             app.UseCookiePolicy();
             app.UseCors(CorsPolicy);
 
-            app.UseSignalR(routes => routes.MapHub<StreamHub>("/streamHub"));
+            app.UseSignalR(routes =>
+            {
+                const HttpTransportType desiredTransports = HttpTransportType.WebSockets |
+                                                            HttpTransportType.LongPolling;
+                routes.MapHub<StreamHub>("/streamHub", 
+                                         options => options.Transports = desiredTransports);
+            });
+
             app.UseMvc(routes => routes.MapRoute("default", "{controller}/{action}/{id?}"));
             app.UseBlazor<Client.Startup>();
         }

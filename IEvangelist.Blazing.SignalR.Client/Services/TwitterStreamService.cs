@@ -13,9 +13,11 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
 
         public TwitterStreamService()
         {
+            const HttpTransportType desiredTransports = HttpTransportType.WebSockets |
+                                                        HttpTransportType.LongPolling;
             _connection =
                 new HubConnectionBuilder()
-                   .WithUrl("/streamHub")
+                   .WithUrl("/streamHub", options => options.Transport = desiredTransports)
                    .AddMessagePackProtocol()
                    .Build();
 

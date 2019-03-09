@@ -15,15 +15,18 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
     {
         readonly ILogger<TwitterService> _logger;
         readonly IHubContext<StreamHub> _hubContext;
+        readonly ISentimentService _sentimentService;
         readonly IFilteredStream _filteredStream;
 
         public TwitterService(
             ILogger<TwitterService> logger,
             IHubContext<StreamHub> hubContext,
+            ISentimentService sentimentService,
             IFilteredStream filteredStream)
         {
             _logger = logger;
             _hubContext = hubContext;
+            _sentimentService = sentimentService;
             _filteredStream = filteredStream;
 
             InitializeStream();
@@ -80,6 +83,8 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
         void InitializeStream()
         {
             _filteredStream.AddCustomQueryParameter("omit_script", "true");
+            _filteredStream.AddCustomQueryParameter("theme", "dark");
+
             _filteredStream.DisconnectMessageReceived += OnDisconnectedMessageReceived;
             _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
             _filteredStream.NonMatchingTweetReceived += OnNonMatchingTweetReceived;
@@ -103,7 +108,18 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
                 return;
             }
 
-            var tweet = Tweet.GetOEmbedTweet(iTweet);
+            // If twitter thinks this might be sensitive
+            // Let's check out its sentiment with machine learning...
+            if (iTweet.PossiblySensitive)
+            {
+                var prediction = _sentimentService.Predict(iTweet.Text);
+                if (prediction?.Percentage < 50)
+                {
+                    return;
+                }
+            }
+
+            var tweet = iTweet.GenerateOEmbedTweet();
             if (tweet is null)
             {
                 return;
