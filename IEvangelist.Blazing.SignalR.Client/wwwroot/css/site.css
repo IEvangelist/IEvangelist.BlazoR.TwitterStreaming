@@ -99,6 +99,7 @@ app {
 
 .loading {
     margin: auto;
+    color: whitesmoke;
 }
 
 .navbar-toggler {

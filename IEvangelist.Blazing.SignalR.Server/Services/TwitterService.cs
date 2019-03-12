@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
-using Tweetinvi;
 using Tweetinvi.Events;
 using Tweetinvi.Models;
 using Tweetinvi.Streaming;
@@ -83,7 +82,6 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
         void InitializeStream()
         {
             _filteredStream.AddCustomQueryParameter("omit_script", "true");
-            _filteredStream.AddCustomQueryParameter("theme", "dark");
 
             _filteredStream.DisconnectMessageReceived += OnDisconnectedMessageReceived;
             _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
@@ -159,7 +157,7 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
 
         async void OnStreamStopped(object sender, StreamExceptionEventArgs args)
         {
-            var status = $"Twitter stream stopped, {args.DisconnectMessage}...";
+            var status = $"Twitter stream stopped {args.DisconnectMessage}...";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);

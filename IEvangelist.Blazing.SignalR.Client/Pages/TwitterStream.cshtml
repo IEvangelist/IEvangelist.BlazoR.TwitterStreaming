@@ -3,9 +3,9 @@
 
 <div class="row mb-lg-3">
     <div class="input-group col-4">
-        <input id="track" type="text" class="form-control" placeholder="@@handle or #hashtag" />
+        <input id="track" type="text" class="form-control" placeholder="handle or hashtag" />
         <div class="input-group-append">
-            <button class="btn btn-dark" type="button" onclick=@AddTrack>
+            <button class="btn btn-primary" type="button" onclick=@AddTrack>
                 <span class="oi oi-plus mr-2"></span> Add
             </button>
         </div>
@@ -13,7 +13,7 @@
     <div class="input-group col-8">
         @foreach (var track in Tracks)
         {
-            <span class="badge badge-pill p-3 mr-2 badge-dark clickable"
+            <span class="badge badge-pill p-3 mr-2 badge-light clickable"
                   title="Click to remove '@(track)'." onclick=@(() => RemoveTrack(track))>
                 @track
             </span>
@@ -23,18 +23,18 @@
 
 <div class="row">
     <div class="col-4">
-        <button class="btn btn-lg btn-dark mr-2" disabled=@IsStreaming onclick=@StreamService.StartAsync>
+        <button class="btn btn-lg btn-light mr-2" disabled=@IsStreaming onclick=@StreamService.StartAsync>
             <span class="oi oi-media-play mr-2"></span> Start
         </button>
-        <button class="btn btn-lg btn-dark mr-2" disabled=@(!IsStreaming) onclick=@StreamService.StopAsync>
+        <button class="btn btn-lg btn-light mr-2" disabled=@(!IsStreaming) onclick=@StreamService.StopAsync>
             <span class="oi oi-media-stop mr-2"></span> Stop
         </button>
-        <button class="btn btn-lg btn-dark" disabled=@(!IsStreaming) onclick=@StreamService.PauseAsync>
+        <button class="btn btn-lg btn-light" disabled=@(!IsStreaming) onclick=@StreamService.PauseAsync>
             <span class="oi oi-media-pause mr-2"></span> Pause
         </button>
     </div>
     <div class="col-8">
-        <div class="alert alert-info" role="alert">
+        <div class="alert alert-primary" role="alert">
             @Status
         </div>
     </div>
@@ -44,7 +44,7 @@
     @if (Tweets?.Any() ?? false)
     {
         <div class="col-6">
-            <h2>Filtered Tweets</h2>
+            <h2 class="text-light">Filtered Tweets</h2>
             <ul class="reversed no-bullets">
                 @foreach (var tweet in Tweets)
                 {
@@ -57,7 +57,7 @@
     @if (OffTopicTweets?.Any() ?? false)
     {
         <div class="col-6">
-            <h2>Off Topic Tweets</h2>
+            <h2 class="text-light">Off Topic Tweets</h2>
             <ul class="reversed no-bullets">
                 @foreach (var tweet in OffTopicTweets)
                 {
