@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using IEvangelist.Blazing.SignalR.Client.Services;
 using IEvangelist.Blazing.SignalR.Shared;
@@ -19,8 +19,10 @@ namespace IEvangelist.Blazing.SignalR.Client.Pages
         {
             "#DeveloperCommunity",
             "#SignalR",
+            "#NDCMN",
+            "NDC_Conferences",
             "@aspnet",
-            "@wi_ineta",
+            "@dotnet",
             "@davidpine7"
         };
 
