@@ -1,5 +1,6 @@
 ﻿using IEvangelist.Blazing.SignalR.Server.Services;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace IEvangelist.Blazing.SignalR.Server.Hubs
@@ -10,9 +11,9 @@ namespace IEvangelist.Blazing.SignalR.Server.Hubs
 
         public StreamHub(ITwitterService twitterService) => _twitterService = twitterService;
 
-        public Task RemoveTracks(string[] tracks) => _twitterService.RemoveTracksAsync(tracks);
+        public Task RemoveTrack(string track) => _twitterService.RemoveTrackAsync(track);
 
-        public Task AddTracks(string[] tracks) => _twitterService.AddTracksAsync(tracks);
+        public Task AddTracks(ISet<string> tracks) => _twitterService.AddTracksAsync(tracks);
 
         public Task StartTweetStream() => _twitterService.StartTweetStreamAsync();
 

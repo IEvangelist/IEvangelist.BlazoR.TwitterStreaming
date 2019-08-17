@@ -3,6 +3,8 @@ using IEvangelist.Blazing.SignalR.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Tweetinvi.Events;
 using Tweetinvi.Models;
@@ -31,15 +33,16 @@ namespace IEvangelist.Blazing.SignalR.Server.Services
             InitializeStream();
         }
 
-        public Task RemoveTracksAsync(params string[] tracks)
-            => HandleTracksAsync(false, tracks);
+        public Task RemoveTrackAsync(string track)
+            => HandleTracksAsync(false, track);
 
-        public Task AddTracksAsync(params string[] tracks)
-            => HandleTracksAsync(true, tracks);
+        public Task AddTracksAsync(ISet<string> tracks)
+            => HandleTracksAsync(true, tracks?.ToArray());
 
         async Task HandleTracksAsync(bool add, params string[] tracks)
         {
             StopTweetStream();
+
             foreach (var track in tracks)
             {
                 if (add)

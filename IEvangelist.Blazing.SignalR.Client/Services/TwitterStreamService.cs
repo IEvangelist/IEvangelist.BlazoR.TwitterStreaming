@@ -31,7 +31,7 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
         public void HandleStatusUpdates(Func<Status, Task> handler)
             => _connection.On("StatusUpdated", handler);
 
-        public async Task AddTracksAsync(List<string> tracks)
+        public async Task AddTracksAsync(ISet<string> tracks)
         {
             await _startTask;
             await _connection.InvokeAsync("AddTracks", tracks);
@@ -40,7 +40,7 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
         public async Task RemoveTrackAsync(string track)
         {
             await _startTask;
-            await _connection.InvokeAsync("RemoveTracks", track);
+            await _connection.InvokeAsync("RemoveTrack", track);
         }
 
         public async Task StartAsync()

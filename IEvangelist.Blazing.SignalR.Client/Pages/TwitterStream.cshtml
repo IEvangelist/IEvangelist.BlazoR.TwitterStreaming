@@ -13,7 +13,7 @@
     <div class="input-group col-8">
         @foreach (var track in Tracks)
         {
-            <span class="badge badge-pill p-3 mr-2 badge-light clickable"
+            <span class="badge badge-pill p-3 mr-2 mb-2 badge-light clickable"
                   title="Click to remove '@(track)'." onclick=@(() => RemoveTrack(track))>
                 @track
             </span>

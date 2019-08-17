@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.421
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IEvangelist.Blazing.SignalR.Server", "IEvangelist.Blazing.SignalR.Server\IEvangelist.Blazing.SignalR.Server.csproj", "{AFA574FC-09EC-4F67-8525-3AEBF1F34E4B}"
 EndProject
@@ -10,7 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0411E6DD-B84A-4A98-9FD1-3C4AD5E46DA2}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		global.json = global.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEvangelist.Blazing.SignalR.Shared", "IEvangelist.Blazing.SignalR.Shared\IEvangelist.Blazing.SignalR.Shared.csproj", "{62A4DDFD-200C-4D79-9BFD-F87E4A53F1E8}"

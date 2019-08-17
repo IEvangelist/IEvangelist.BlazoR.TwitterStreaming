@@ -11,7 +11,7 @@ namespace IEvangelist.Blazing.SignalR.Client.Services
 
         void HandleTweets(Func<TweetResult, Task> handler);
 
-        Task AddTracksAsync(List<string> tracks);
+        Task AddTracksAsync(ISet<string> tracks);
 
         Task RemoveTrackAsync(string track);
 

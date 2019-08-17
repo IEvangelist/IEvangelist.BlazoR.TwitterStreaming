@@ -1,12 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace IEvangelist.Blazing.SignalR.Server.Services
 {
     public interface ITwitterService
     {
-        Task RemoveTracksAsync(params string[] tracks);
+        Task RemoveTrackAsync(string track);
 
-        Task AddTracksAsync(params string[] tracks);
+        Task AddTracksAsync(ISet<string> tracks);
 
         Task StartTweetStreamAsync();
 

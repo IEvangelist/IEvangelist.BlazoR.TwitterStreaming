@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using IEvangelist.Blazing.SignalR.Client.Services;
@@ -15,13 +16,14 @@ namespace IEvangelist.Blazing.SignalR.Client.Pages
 
         protected readonly List<TweetResult> OffTopicTweets = new List<TweetResult>();
         protected readonly List<TweetResult> Tweets = new List<TweetResult>();
-        protected readonly List<string> Tracks = new List<string>
+        protected readonly ISet<string> Tracks = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "#DeveloperCommunity",
             "#SignalR",
-            "#NDCMN",
-            "NDC_Conferences",
+            "#Blazor",
+            "@telerik",
             "@aspnet",
+            "@devreach",
             "@dotnet",
             "@davidpine7"
         };
