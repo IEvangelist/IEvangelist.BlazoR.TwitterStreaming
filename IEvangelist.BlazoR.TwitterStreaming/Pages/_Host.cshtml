@@ -1,0 +1,43 @@
+﻿@page "/"
+@namespace IEvangelist.BlazoR.TwitterStreaming.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="twitter:widgets:theme" content="dark">
+    <title>BlazoR Bits</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-theme-material@@latest/dist/all.css" />
+    <script src="_content/telerik.ui.for.blazor.trial/js/telerik-blazor.js" defer></script>
+</head>
+<body class="bg-dark">
+    <script>
+        window.twttr = (function (d, s, id) {
+            var js,
+                fjs = d.getElementsByTagName(s)[0],
+                t = window.twttr || {};
+            if (d.getElementById(id)) return t;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://platform.twitter.com/widgets.js";
+            fjs.parentNode.insertBefore(js, fjs);
+
+            t._e = [];
+            t.ready = function (f) {
+                t._e.push(f);
+            };
+
+            return t;
+        }(document, "script", "twitter-wjs"));
+    </script>
+    <app>
+    </app>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

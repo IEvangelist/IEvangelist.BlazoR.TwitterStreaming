@@ -1,0 +1,74 @@
+﻿@page "/"
+@inherits IndexComponent
+
+@using Telerik.Blazor.Components.Button
+@using Telerik.Blazor.Components.TextBox
+
+<div class="row mb-lg-3">
+    <div class="input-group col-4">
+        <TelerikTextBox id="track" @bind-Value="Track" Class="text" Label="handle or hashtag"></TelerikTextBox>
+        <div class="input-group-append">
+            <TelerikButton OnClick="AddTrack" Icon="plus" Primary="true">Add</TelerikButton>
+        </div>
+    </div>
+    <div class="input-group col-8">
+        @foreach (var track in Tracks)
+        {
+            <span class="badge badge-pill p-3 mr-2 mb-2 badge-light clickable"
+                    title="Click to remove '@(track)'." @onclick="(() => RemoveTrack(track))">
+                @track
+            </span>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-4">
+        <TelerikButton Class="btn btn-lg btn-light mr-2" Enabled=@(!IsStreaming)
+                       Icon="play" OnClick="StreamService.StartTweetStreamAsync">
+            Start
+        </TelerikButton>
+        <TelerikButton Class="btn btn-lg btn-light mr-2" Enabled=@IsStreaming
+                       Icon="stop" OnClick="StreamService.StopTweetStream">
+            Stop
+        </TelerikButton>
+        <TelerikButton Class="btn btn-lg btn-light" Enabled=@IsStreaming
+                       Icon="pause" OnClick="StreamService.PauseTweetStream">
+            Pause
+        </TelerikButton>
+    </div>
+    <div class="col-8">
+        <div class="alert alert-primary" role="alert">
+            @Status
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    @if (Tweets?.Any() ?? false)
+    {
+        <div class="col-6">
+            <h2 class="text-light">Filtered Tweets</h2>
+            <ul class="reversed no-bullets">
+                @foreach (var tweet in Tweets)
+                {
+                    var tweetHTml = new MarkupString(tweet.HTML);
+                    <li>@tweetHTml</li>
+                }
+            </ul>
+        </div>
+    }
+    @if (OffTopicTweets?.Any() ?? false)
+    {
+        <div class="col-6">
+            <h2 class="text-light">Off Topic Tweets</h2>
+            <ul class="reversed no-bullets">
+                @foreach (var tweet in OffTopicTweets)
+                {
+                    var tweetHTml = new MarkupString(tweet.HTML);
+                    <li>@tweetHTml</li>
+                }
+            </ul>
+        </div>
+    }
+</div>
