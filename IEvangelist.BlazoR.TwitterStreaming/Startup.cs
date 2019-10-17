@@ -27,7 +27,8 @@ namespace IEvangelist.BlazoR.TwitterStreaming
             services.AddTelerikBlazor();
 
             services.AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
-                    .AddMessagePackProtocol();
+                    .AddAzureSignalR();
+                    //.AddMessagePackProtocol();
 
             Auth.SetUserCredentials(
                 _configuration["Authentication:Twitter:ConsumerKey"],
@@ -60,16 +61,12 @@ namespace IEvangelist.BlazoR.TwitterStreaming
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-
+            
             app.UseEndpoints(endpoints =>
             {
-                const HttpTransportType desiredTransports =
-                    HttpTransportType.WebSockets |
-                    HttpTransportType.LongPolling;
-
-                endpoints.MapHub<StreamHub>("/streamHub", options => options.Transports = desiredTransports);
-                endpoints.MapBlazorHub<App>(selector: "app");
+                endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
+                endpoints.MapHub<StreamHub>("/streamHub");
             });
         }
     }

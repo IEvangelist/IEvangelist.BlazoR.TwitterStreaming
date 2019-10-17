@@ -1,21 +1,20 @@
 ﻿@page "/"
 @inherits IndexComponent
 
-@using Telerik.Blazor.Components.Button
-@using Telerik.Blazor.Components.TextBox
-
 <div class="row mb-lg-3">
     <div class="input-group col-4">
-        <TelerikTextBox id="track" @bind-Value="Track" Class="text" Label="handle or hashtag"></TelerikTextBox>
+        <input id="track" type="text" class="form-control" placeholder="handle or hashtag" />
         <div class="input-group-append">
-            <TelerikButton OnClick="AddTrack" Icon="plus" Primary="true">Add</TelerikButton>
+            <button class="btn btn-primary" type="button" @onclick="AddTrack">
+                <span class="oi oi-plus mr-2"></span> Add
+            </button>
         </div>
     </div>
     <div class="input-group col-8">
         @foreach (var track in Tracks)
         {
             <span class="badge badge-pill p-3 mr-2 mb-2 badge-light clickable"
-                    title="Click to remove '@(track)'." @onclick="(() => RemoveTrack(track))">
+                  title="Click to remove '@(track)'." @onclick="(() => RemoveTrack(track))">
                 @track
             </span>
         }
@@ -24,18 +23,15 @@
 
 <div class="row">
     <div class="col-4">
-        <TelerikButton Class="btn btn-lg btn-light mr-2" Enabled=@(!IsStreaming)
-                       Icon="play" OnClick="StreamService.StartTweetStreamAsync">
-            Start
-        </TelerikButton>
-        <TelerikButton Class="btn btn-lg btn-light mr-2" Enabled=@IsStreaming
-                       Icon="stop" OnClick="StreamService.StopTweetStream">
-            Stop
-        </TelerikButton>
-        <TelerikButton Class="btn btn-lg btn-light" Enabled=@IsStreaming
-                       Icon="pause" OnClick="StreamService.PauseTweetStream">
-            Pause
-        </TelerikButton>
+        <button class="btn btn-lg btn-light mr-2" disabled=@(IsStreaming) @onclick="StartAsync">
+            <span class="oi oi-media-play mr-2"></span> Start
+        </button>
+        <button class="btn btn-lg btn-light mr-2" disabled=@(!IsStreaming) @onclick="StopAsync">
+            <span class="oi oi-media-stop mr-2"></span> Stop
+        </button>
+        <button class="btn btn-lg btn-light" disabled=@(!IsStreaming) @onclick="PauseAsync">
+            <span class="oi oi-media-pause mr-2"></span> Pause
+        </button>
     </div>
     <div class="col-8">
         <div class="alert alert-primary" role="alert">

@@ -1,6 +1,4 @@
-﻿using IEvangelist.BlazoR.Services;
-using IEvangelist.BlazoR.Services.Models;
-using IEvangelist.BlazoR.TwitterStreaming.Hubs;
+﻿using IEvangelist.BlazoR.Services.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -36,28 +34,33 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
         [Inject]
-        protected ITwitterService<StreamHub> StreamService { get; set; }
-        [Inject]
         protected ILogger<IndexComponent> Logger { get; set; }
         [Inject]
-        protected IUriHelper UriHelper { get; set; }
+        protected NavigationManager UriHelper { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
-            var streamHub = $"{UriHelper.GetBaseUri()}streamHub";
+            var streamHub = $"{UriHelper.BaseUri}streamHub";
+
+            Logger.LogInformation("On initialized called.");
 
             _connection =
                 new HubConnectionBuilder()
-                   .WithUrl(streamHub, HttpTransportType.WebSockets | HttpTransportType.LongPolling)
-                   .AddMessagePackProtocol()
+                   .WithUrl(streamHub)
+                   //.AddMessagePackProtocol()
                    .WithAutomaticReconnect()
                    .Build();
+
+            // This should fire from the stream hub, when a status is pumped through.
 
             _connection.On<Status>("StatusUpdatedAsync", OnStatusUpdated);
             _connection.On<TweetResult>("TweetReceivedAsync", OnTweetReceived);
 
             await _connection.StartAsync();
-            await StreamService.AddTracksAsync(Tracks);
+
+            // I do know that the "AddTracks" is getting called, verified that with a break point
+            // Then it changes the status and that's where things break
+            await _connection.InvokeAsync("AddTracks", Tracks);
         }
 
         async Task OnStatusUpdated(Status status)
@@ -95,7 +98,7 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
 
             StateHasChanged();
 
-            await StreamService.AddTracksAsync(Tracks);
+            await _connection.InvokeAsync("AddTracks", Tracks);
         }
 
         protected async Task RemoveTrack(string track)
@@ -103,7 +106,16 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
             Tracks.Remove(track);
             StateHasChanged();
 
-            await StreamService.RemoveTrackAsync(track);
+            await _connection.InvokeAsync("AddTracks", track);
         }
+
+        protected async Task StartAsync() => 
+            await _connection.InvokeAsync("Start");
+
+        protected async Task StopAsync() =>
+            await _connection.InvokeAsync("Stop");
+
+        protected async Task PauseAsync() =>
+            await _connection.InvokeAsync("Pause");
     }
 }

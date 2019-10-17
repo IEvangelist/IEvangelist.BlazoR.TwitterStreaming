@@ -25,18 +25,18 @@ namespace IEvangelist.BlazoR.Services
             IFilteredStream filteredStream)
         {
             _logger = logger;
-            _hubContext = hubContext;
+            _hubContext = hubContext; // Trying to show off the hub context
             _sentimentService = sentimentService;
             _filteredStream = filteredStream;
 
             InitializeStream();
         }
 
-        public Task RemoveTrackAsync(string track)
-            => HandleTracksAsync(false, track);
+        public Task RemoveTrackAsync(string track) => 
+            HandleTracksAsync(false, track);
 
-        public Task AddTracksAsync(ISet<string> tracks)
-            => HandleTracksAsync(true, tracks?.ToArray());
+        public Task AddTracksAsync(ISet<string> tracks) =>
+            HandleTracksAsync(true, tracks?.ToArray());
 
         async Task HandleTracksAsync(bool add, params string[] tracks)
         {

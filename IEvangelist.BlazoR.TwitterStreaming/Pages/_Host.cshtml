@@ -12,8 +12,6 @@
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-theme-material@@latest/dist/all.css" />
-    <script src="_content/telerik.ui.for.blazor.trial/js/telerik-blazor.js" defer></script>
 </head>
 <body class="bg-dark">
     <script>
@@ -35,7 +33,9 @@
             return t;
         }(document, "script", "twitter-wjs"));
     </script>
+
     <app>
+        @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
     </app>
 
     <script src="_framework/blazor.server.js"></script>

@@ -15,10 +15,10 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Hubs
 
         public Task AddTracks(ISet<string> tracks) => _twitterService.AddTracksAsync(tracks);
 
-        public Task StartTweetStream() => _twitterService.StartTweetStreamAsync();
+        public Task Start() => _twitterService.StartTweetStreamAsync();
 
-        public void PauseTweetStream() => _twitterService.PauseTweetStream();
+        public void Pause() => _twitterService.PauseTweetStream();
 
-        public void StopTweetStream() => _twitterService.StopTweetStream();
+        public void Stop() => _twitterService.StopTweetStream();
     }
 }
