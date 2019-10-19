@@ -1,7 +1,6 @@
 ﻿using IEvangelist.BlazoR.Services.Models;
 using IEvangelist.BlazoR.TwitterStreaming.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System;
@@ -45,7 +44,7 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
 
             Logger.LogInformation("Initialized component");
 
-            StreamService.AddTracks(Tracks);
+            await StreamService.AddTracks(Tracks);
         }
 
         async Task StatusUpdated(Status status)

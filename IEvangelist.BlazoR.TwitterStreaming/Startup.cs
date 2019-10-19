@@ -1,3 +1,4 @@
+using Blazor.Extensions;
 using IEvangelist.BlazoR.TwitterStreaming.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +17,8 @@ namespace IEvangelist.BlazoR.TwitterStreaming
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddTelerikBlazor();
-            services.AddSingleton<IStreamService, StreamService>();
+            services.AddTransient<HubConnectionBuilder>();
+            services.AddTransient<IStreamService, StreamService>();
             services.AddResponseCompression(
                 options =>
                     options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] 
