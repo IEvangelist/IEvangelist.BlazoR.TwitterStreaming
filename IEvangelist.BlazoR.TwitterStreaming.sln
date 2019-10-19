@@ -5,7 +5,11 @@ VisualStudioVersion = 16.0.29209.152
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IEvangelist.BlazoR.TwitterStreaming", "IEvangelist.BlazoR.TwitterStreaming\IEvangelist.BlazoR.TwitterStreaming.csproj", "{054FA60D-3BE1-40E5-B156-4FE458765EBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEvangelist.BlazoR.Services", "IEvangelist.BlazoR.Services\IEvangelist.BlazoR.Services.csproj", "{DE94B16F-CCE1-44AA-BF95-DAF1A8330256}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IEvangelist.BlazoR.Services", "IEvangelist.BlazoR.Services\IEvangelist.BlazoR.Services.csproj", "{DE94B16F-CCE1-44AA-BF95-DAF1A8330256}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEvangelist.BlazoR.Models", "IEvangelist.BlazoR.Models\IEvangelist.BlazoR.Models.csproj", "{1C3D46D4-208A-4E65-B0B2-5BC1D3E3920E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEvangelist.BlazoR.TweeteR", "IEvangelist.BlazoR.TweeteR\IEvangelist.BlazoR.TweeteR.csproj", "{3FE2328B-8866-4279-9AC4-0E95FB67A464}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{DE94B16F-CCE1-44AA-BF95-DAF1A8330256}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE94B16F-CCE1-44AA-BF95-DAF1A8330256}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE94B16F-CCE1-44AA-BF95-DAF1A8330256}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C3D46D4-208A-4E65-B0B2-5BC1D3E3920E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C3D46D4-208A-4E65-B0B2-5BC1D3E3920E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C3D46D4-208A-4E65-B0B2-5BC1D3E3920E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C3D46D4-208A-4E65-B0B2-5BC1D3E3920E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FE2328B-8866-4279-9AC4-0E95FB67A464}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FE2328B-8866-4279-9AC4-0E95FB67A464}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FE2328B-8866-4279-9AC4-0E95FB67A464}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FE2328B-8866-4279-9AC4-0E95FB67A464}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

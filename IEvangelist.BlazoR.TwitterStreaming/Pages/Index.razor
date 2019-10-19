@@ -5,7 +5,7 @@
     <div class="input-group col-4">
         <input id="track" type="text" class="form-control" placeholder="handle or hashtag" />
         <div class="input-group-append">
-            <button class="btn btn-primary" type="button" @onclick="AddTrack">
+            <button class="btn btn-primary" type="button" @onclick="AddTracks">
                 <span class="oi oi-plus mr-2"></span> Add
             </button>
         </div>
@@ -23,13 +23,13 @@
 
 <div class="row">
     <div class="col-4">
-        <button class="btn btn-lg btn-light mr-2" disabled=@(IsStreaming) @onclick="StartAsync">
+        <button class="btn btn-lg btn-light mr-2" disabled="@IsStreaming" @onclick="Start">
             <span class="oi oi-media-play mr-2"></span> Start
         </button>
-        <button class="btn btn-lg btn-light mr-2" disabled=@(!IsStreaming) @onclick="StopAsync">
+        <button class="btn btn-lg btn-light mr-2" disabled="@(!IsStreaming)" @onclick="Stop">
             <span class="oi oi-media-stop mr-2"></span> Stop
         </button>
-        <button class="btn btn-lg btn-light" disabled=@(!IsStreaming) @onclick="PauseAsync">
+        <button class="btn btn-lg btn-light" disabled="@(!IsStreaming)" @onclick="Pause">
             <span class="oi oi-media-pause mr-2"></span> Pause
         </button>
     </div>

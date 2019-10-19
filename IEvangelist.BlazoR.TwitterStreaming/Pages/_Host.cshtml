@@ -14,6 +14,12 @@
     <link href="css/site.css" rel="stylesheet" />
 </head>
 <body class="bg-dark">
+
+    <app>
+        @(await Html.RenderComponentAsync<App>(RenderMode.Server))
+    </app>
+
+    <script src="_framework/blazor.server.js"></script>
     <script>
         window.twttr = (function (d, s, id) {
             var js,
@@ -33,11 +39,5 @@
             return t;
         }(document, "script", "twitter-wjs"));
     </script>
-
-    <app>
-        @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
-    </app>
-
-    <script src="_framework/blazor.server.js"></script>
 </body>
 </html>

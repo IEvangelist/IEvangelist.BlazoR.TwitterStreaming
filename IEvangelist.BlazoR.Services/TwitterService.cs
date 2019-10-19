@@ -1,9 +1,11 @@
 ﻿using IEvangelist.BlazoR.Services.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Tweetinvi.Events;
 using Tweetinvi.Models;
@@ -11,34 +13,50 @@ using Tweetinvi.Streaming;
 
 namespace IEvangelist.BlazoR.Services
 {
-    public class TwitterService<T> : ITwitterService<T> where T : Hub<ITwitterClient>
+    public class TwitterService<T> : BackgroundService, ITwitterService<T> where T : Hub
     {
         readonly ILogger<TwitterService<T>> _logger;
-        readonly IHubContext<T, ITwitterClient> _hubContext;
+        readonly IHubContext<T> _hubContext;
         readonly ISentimentService _sentimentService;
         readonly IFilteredStream _filteredStream;
 
         public TwitterService(
             ILogger<TwitterService<T>> logger,
-            IHubContext<T, ITwitterClient> hubContext,
+            IHubContext<T> hubContext,
             ISentimentService sentimentService,
             IFilteredStream filteredStream)
         {
             _logger = logger;
-            _hubContext = hubContext; // Trying to show off the hub context
+            _hubContext = hubContext;
             _sentimentService = sentimentService;
             _filteredStream = filteredStream;
 
             InitializeStream();
         }
 
-        public Task RemoveTrackAsync(string track) => 
-            HandleTracksAsync(false, track);
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                stoppingToken.ThrowIfCancellationRequested();
+                if (_filteredStream.TracksCount > 0)
+                {
+                    await StartTweetStreamAsync();
+                }
+                else
+                {
+                    await Task.Delay(500);
+                }
+            }
+        }
 
-        public Task AddTracksAsync(ISet<string> tracks) =>
-            HandleTracksAsync(true, tracks?.ToArray());
+        public void RemoveTrack(string track) => 
+            HandleTracks(false, track);
 
-        async Task HandleTracksAsync(bool add, params string[] tracks)
+        public void AddTracks(ISet<string> tracks) =>
+            HandleTracks(true, tracks?.ToArray());
+
+        void HandleTracks(bool add, params string[] tracks)
         {
             StopTweetStream();
 
@@ -53,14 +71,13 @@ namespace IEvangelist.BlazoR.Services
                     _filteredStream.RemoveTrack(track);
                 }
             }
-
-            await StartTweetStreamAsync();
         }
 
         public async Task StartTweetStreamAsync()
         {
             if (_filteredStream.StreamState != StreamState.Running)
             {
+                _logger.LogInformation("Starting tweet stream.");
                 await _filteredStream.StartStreamMatchingAnyConditionAsync();
             }
         }
@@ -69,6 +86,7 @@ namespace IEvangelist.BlazoR.Services
         {
             if (_filteredStream.StreamState != StreamState.Pause)
             {
+                _logger.LogInformation("Pausing tweet stream.");
                 _filteredStream.PauseStream();
             }
         }
@@ -77,6 +95,7 @@ namespace IEvangelist.BlazoR.Services
         {
             if (_filteredStream.StreamState != StreamState.Stop)
             {
+                _logger.LogInformation("Stoping tweet stream.");
                 _filteredStream.StopStream();
             }
         }
@@ -104,11 +123,11 @@ namespace IEvangelist.BlazoR.Services
             _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
         }
 
-        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args)
-            => await BroadcastTweet(args?.Tweet, true);
+        async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args) =>
+            await BroadcastTweet(args?.Tweet, true);
 
-        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args)
-            => await BroadcastTweet(args?.Tweet, false);
+        async void OnMatchingTweetReceived(object sender, MatchedTweetReceivedEventArgs args) =>
+            await BroadcastTweet(args?.Tweet, false);
 
         async Task BroadcastTweet(ITweet iTweet, bool isOffTopic)
         {
@@ -134,20 +153,21 @@ namespace IEvangelist.BlazoR.Services
                 return;
             }
 
-            await _hubContext.Clients.All.TweetReceivedAsync(new TweetResult
-            {
-                IsOffTopic = isOffTopic,
-                AuthorName = tweet.AuthorName,
-                AuthorURL = tweet.AuthorURL,
-                CacheAge = tweet.CacheAge,
-                Height = tweet.Height,
-                HTML = tweet.HTML,
-                ProviderURL = tweet.ProviderURL,
-                Type = tweet.Type,
-                URL = tweet.URL,
-                Version = tweet.Version,
-                Width = tweet.Width
-            });
+            await _hubContext.Clients.All.SendAsync("TweetReceived",
+                new TweetResult
+                {
+                    IsOffTopic = isOffTopic,
+                    AuthorName = tweet.AuthorName,
+                    AuthorURL = tweet.AuthorURL,
+                    CacheAge = tweet.CacheAge,
+                    Height = tweet.Height,
+                    HTML = tweet.HTML,
+                    ProviderURL = tweet.ProviderURL,
+                    Type = tweet.Type,
+                    URL = tweet.URL,
+                    Version = tweet.Version,
+                    Width = tweet.Width
+                });
         }
 
         async void OnDisconnectedMessageReceived(object sender, DisconnectedEventArgs args)
@@ -198,8 +218,9 @@ namespace IEvangelist.BlazoR.Services
             await SendStatusUpdateAsync(status);
         }
 
-        async Task SendStatusUpdateAsync(string status)
-            => await _hubContext.Clients.All.StatusUpdatedAsync(
+        async Task SendStatusUpdateAsync(string status) =>
+            await _hubContext.Clients.All.SendAsync(
+                "StatusUpdated",
                 new Status
                 {
                     IsStreaming = _filteredStream.StreamState == StreamState.Running,

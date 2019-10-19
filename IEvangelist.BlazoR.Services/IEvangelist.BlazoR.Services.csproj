@@ -8,8 +8,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.1.1" />
     <PackageReference Include="Microsoft.ML" Version="0.11.0" />
     <PackageReference Include="TweetinviAPI" Version="4.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IEvangelist.BlazoR.Models\IEvangelist.BlazoR.Models.csproj" />
   </ItemGroup>
 
 </Project>

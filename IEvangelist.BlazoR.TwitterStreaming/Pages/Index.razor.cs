@@ -1,8 +1,7 @@
 ﻿using IEvangelist.BlazoR.Services.Models;
+using IEvangelist.BlazoR.TwitterStreaming.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System;
@@ -13,10 +12,9 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
 {
     public class IndexComponent : ComponentBase
     {
-        HubConnection _connection;
-
         protected bool IsStreaming;
         protected string Status = "Waiting for tweets...";
+
         protected string Track { get; set; }
 
         protected readonly List<TweetResult> OffTopicTweets = new List<TweetResult>();
@@ -36,34 +34,21 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
         [Inject]
         protected ILogger<IndexComponent> Logger { get; set; }
         [Inject]
-        protected NavigationManager UriHelper { get; set; }
+        protected IStreamService StreamService { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
-            var streamHub = $"{UriHelper.BaseUri}streamHub";
+            StreamService.RegisterStatusUpdatedHandler(StatusUpdated);
+            StreamService.RegisterTweetReceivedHandler(TweetReceived);
 
-            Logger.LogInformation("On initialized called.");
+            await StreamService.InitializeAsync();
 
-            _connection =
-                new HubConnectionBuilder()
-                   .WithUrl(streamHub)
-                   //.AddMessagePackProtocol()
-                   .WithAutomaticReconnect()
-                   .Build();
+            Logger.LogInformation("Initialized component");
 
-            // This should fire from the stream hub, when a status is pumped through.
-
-            _connection.On<Status>("StatusUpdatedAsync", OnStatusUpdated);
-            _connection.On<TweetResult>("TweetReceivedAsync", OnTweetReceived);
-
-            await _connection.StartAsync();
-
-            // I do know that the "AddTracks" is getting called, verified that with a break point
-            // Then it changes the status and that's where things break
-            await _connection.InvokeAsync("AddTracks", Tracks);
+            StreamService.AddTracks(Tracks);
         }
 
-        async Task OnStatusUpdated(Status status)
+        async Task StatusUpdated(Status status)
         {
             Logger.LogInformation($"Status: IsStreaming {status.IsStreaming}, Message {status.Message}.");
 
@@ -75,7 +60,7 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
             await Task.CompletedTask;
         }
 
-        async Task OnTweetReceived(TweetResult tweet)
+        async Task TweetReceived(TweetResult tweet)
         {
             if (tweet.IsOffTopic)
             {
@@ -88,17 +73,23 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
 
             StateHasChanged();
 
-            await JSRuntime.InvokeAsync<bool>("twttr.widgets.load");
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("twttr.widgets.load");
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
-        protected async Task AddTrack()
+        protected async Task AddTracks()
         {
             Tracks.Add(Track);
             Track = string.Empty;
 
             StateHasChanged();
 
-            await _connection.InvokeAsync("AddTracks", Tracks);
+            await StreamService.AddTracks(Tracks);
         }
 
         protected async Task RemoveTrack(string track)
@@ -106,16 +97,16 @@ namespace IEvangelist.BlazoR.TwitterStreaming.Pages
             Tracks.Remove(track);
             StateHasChanged();
 
-            await _connection.InvokeAsync("AddTracks", track);
+            await StreamService.RemoveTrack(track);
         }
 
-        protected async Task StartAsync() => 
-            await _connection.InvokeAsync("Start");
+        protected async Task Start() =>
+            await StreamService.Start();
 
-        protected async Task StopAsync() =>
-            await _connection.InvokeAsync("Stop");
+        protected async Task Stop() =>
+            await StreamService.Stop();
 
-        protected async Task PauseAsync() =>
-            await _connection.InvokeAsync("Pause");
+        protected async Task Pause() =>
+            await StreamService.Pause();
     }
 }
