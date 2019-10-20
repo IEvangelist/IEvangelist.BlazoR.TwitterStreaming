@@ -14,10 +14,10 @@ using Tweetinvi.Streaming;
 
 namespace IEvangelist.BlazoR.Services
 {
-    public class TwitterService<T> : BackgroundService, ITwitterService<T> where T : Hub
+    public class TwitterService<T> : BackgroundService, ITwitterService<T> where T : Hub<ITwitterClient>
     {
         readonly ILogger<TwitterService<T>> _logger;
-        readonly IHubContext<T> _hubContext;
+        readonly IHubContext<T, ITwitterClient> _hubContext;
         readonly ISentimentService _sentimentService;
         readonly IFilteredStream _filteredStream;
 
@@ -26,7 +26,7 @@ namespace IEvangelist.BlazoR.Services
 
         public TwitterService(
             ILogger<TwitterService<T>> logger,
-            IHubContext<T> hubContext,
+            IHubContext<T, ITwitterClient> hubContext,
             ISentimentService sentimentService,
             IFilteredStream filteredStream)
         {
@@ -169,7 +169,7 @@ namespace IEvangelist.BlazoR.Services
                 return;
             }
 
-            await _hubContext.Clients.All.SendAsync("TweetReceived",
+            await _hubContext.Clients.All.TweetReceived(
                 new TweetResult
                 {
                     IsOffTopic = isOffTopic,
@@ -236,8 +236,7 @@ namespace IEvangelist.BlazoR.Services
         }
 
         async Task SendStatusUpdateAsync(string status) =>
-            await _hubContext.Clients.All.SendAsync(
-                "StatusUpdated",
+            await _hubContext.Clients.All.StatusUpdated(
                 new Status
                 {
                     IsStreaming = _filteredStream.StreamState == StreamState.Running,

@@ -5,8 +5,8 @@ namespace IEvangelist.BlazoR.Services
 {
     public interface ITwitterClient
     {
-        Task TweetReceivedAsync(TweetResult tweet);
+        Task TweetReceived(TweetResult tweet);
 
-        Task StatusUpdatedAsync(Status status);
+        Task StatusUpdated(Status status);
     }
 }

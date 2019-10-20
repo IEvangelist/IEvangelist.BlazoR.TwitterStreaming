@@ -12,7 +12,7 @@ namespace IEvangelist.BlazoR.Services.Extensions
         public static IServiceCollection AddBlazoRTwitterServices<THub>(
             this IServiceCollection services,
             IConfiguration configuration)
-            where THub : Hub
+            where THub : Hub<ITwitterClient>
         {
             services.AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
                     .AddAzureSignalR();

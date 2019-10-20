@@ -6,32 +6,26 @@ using System.Threading.Tasks;
 
 namespace IEvangelist.BlazoR.TweeteR.Hubs
 {
-    public class StreamHub : Hub
+    public class StreamHub : Hub<ITwitterClient>
     {
         readonly ITwitterService<StreamHub> _twitterService;
 
-        public StreamHub(ITwitterService<StreamHub> twitterService) => 
+        public StreamHub(ITwitterService<StreamHub> twitterService) =>
             _twitterService = twitterService;
 
-        public void RemoveTrack(string track) => 
+        public void RemoveTrack(string track) =>
             _twitterService.RemoveTrack(track);
 
-        public void AddTracks(ISet<string> tracks) => 
+        public void AddTracks(ISet<string> tracks) =>
             _twitterService.AddTracks(tracks);
 
-        public Task Start() => 
+        public Task Start() =>
             _twitterService.StartTweetStreamAsync();
 
-        public void Pause() => 
+        public void Pause() =>
             _twitterService.PauseTweetStream();
 
-        public void Stop() => 
+        public void Stop() =>
             _twitterService.StopTweetStream();
-
-        public Task StatusUpdated(Status status) => 
-            Clients.All.SendAsync(nameof(StatusUpdated), status);
-
-        public Task TweetReceived(TweetResult tweet) =>
-            Clients.All.SendAsync(nameof(TweetReceived), tweet);
     }
 }
