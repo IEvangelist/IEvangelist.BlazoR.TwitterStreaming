@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tweetinvi;
 using Tweetinvi.Events;
 using Tweetinvi.Models;
 using Tweetinvi.Streaming;
@@ -19,6 +20,9 @@ namespace IEvangelist.BlazoR.Services
         readonly IHubContext<T> _hubContext;
         readonly ISentimentService _sentimentService;
         readonly IFilteredStream _filteredStream;
+
+        static bool IsInitialized = false;
+        static readonly object Locker = new object();
 
         public TwitterService(
             ILogger<TwitterService<T>> logger,
@@ -42,15 +46,20 @@ namespace IEvangelist.BlazoR.Services
                 if (_filteredStream.TracksCount > 0)
                 {
                     await StartTweetStreamAsync();
+
+                    if (_filteredStream.StreamState != StreamState.Running)
+                    {
+                        await Task.Delay(7500);
+                    }
                 }
                 else
                 {
-                    await Task.Delay(500);
+                    await Task.Delay(5000);
                 }
             }
         }
 
-        public void RemoveTrack(string track) => 
+        public void RemoveTrack(string track) =>
             HandleTracks(false, track);
 
         public void AddTracks(ISet<string> tracks) =>
@@ -102,25 +111,32 @@ namespace IEvangelist.BlazoR.Services
 
         void InitializeStream()
         {
-            _filteredStream.AddCustomQueryParameter("omit_script", "true");
+            lock (Locker)
+            {
+                if (IsInitialized) return;
 
-            _filteredStream.KeepAliveReceived += async (o, e) => 
-                await SendStatusUpdateAsync("Keep alive recieved...");
-            _filteredStream.LimitReached += async (o, e) => 
-                await SendStatusUpdateAsync($"Limit receached, missed {e.NumberOfTweetsNotReceived:#,#} tweets...");
-            _filteredStream.JsonObjectReceived += async (o, e) =>
-                await SendStatusUpdateAsync($"JSON recieved {e.Json}...");
-            _filteredStream.UnmanagedEventReceived += async (o, e) =>
-                await SendStatusUpdateAsync($"Unexpected JSON message recieved {e.JsonMessageReceived}...");
+                _filteredStream.AddCustomQueryParameter("omit_script", "true");
 
-            _filteredStream.DisconnectMessageReceived += OnDisconnectedMessageReceived;
-            _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
-            _filteredStream.NonMatchingTweetReceived += OnNonMatchingTweetReceived;
-            _filteredStream.StreamStarted += OnStreamStarted;
-            _filteredStream.StreamStopped += OnStreamStopped;
-            _filteredStream.StreamResumed += OnStreamResumed;
-            _filteredStream.StreamPaused += OnStreamPaused;
-            _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
+                //_filteredStream.KeepAliveReceived += async (o, e) =>
+                //    await SendStatusUpdateAsync("Keep alive recieved...");
+                //_filteredStream.LimitReached += async (o, e) =>
+                //    await SendStatusUpdateAsync($"Limit receached, missed {e.NumberOfTweetsNotReceived:#,#} tweets...");
+                //_filteredStream.JsonObjectReceived += async (o, e) =>
+                //    await SendStatusUpdateAsync($"JSON recieved {e.Json}...");
+                //_filteredStream.UnmanagedEventReceived += async (o, e) =>
+                //    await SendStatusUpdateAsync($"Unexpected JSON message recieved {e.JsonMessageReceived}...");
+
+                _filteredStream.DisconnectMessageReceived += OnDisconnectedMessageReceived;
+                _filteredStream.MatchingTweetReceived += OnMatchingTweetReceived;
+                //_filteredStream.NonMatchingTweetReceived += OnNonMatchingTweetReceived;
+                _filteredStream.StreamStarted += OnStreamStarted;
+                _filteredStream.StreamStopped += OnStreamStopped;
+                _filteredStream.StreamResumed += OnStreamResumed;
+                _filteredStream.StreamPaused += OnStreamPaused;
+                _filteredStream.WarningFallingBehindDetected += OnFallingBehindDetected;
+
+                IsInitialized = true;
+            }
         }
 
         async void OnNonMatchingTweetReceived(object sender, TweetEventArgs args) =>
@@ -172,7 +188,8 @@ namespace IEvangelist.BlazoR.Services
 
         async void OnDisconnectedMessageReceived(object sender, DisconnectedEventArgs args)
         {
-            var status = $"Twitter stream disconnected, {args.DisconnectMessage}...";
+            var latestException = ExceptionHandler.GetLastException();
+            var status = $"Twitter stream disconnected, {args.DisconnectMessage}...{latestException?.TwitterDescription}";
             _logger.LogWarning(status, args);
 
             await SendStatusUpdateAsync(status);
@@ -188,7 +205,7 @@ namespace IEvangelist.BlazoR.Services
 
         async void OnStreamStopped(object sender, StreamExceptionEventArgs args)
         {
-            var status = $"Twitter stream stopped {args.DisconnectMessage}...";
+            var status = $"Twitter stream stopped {args.DisconnectMessage}... {args.Exception.Message}";
             _logger.LogInformation(status);
 
             await SendStatusUpdateAsync(status);

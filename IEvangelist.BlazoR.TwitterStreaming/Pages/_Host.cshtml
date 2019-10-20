@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="twitter:widgets:theme" content="dark">
-    <title>BlazoR Bits</title>
+    <title>BlazoR - Tweet Streams</title>
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
@@ -19,7 +19,7 @@
         @(await Html.RenderComponentAsync<App>(RenderMode.Server))
     </app>
 
-    <script src="_framework/blazor.server.js"></script>
+    <script src="~/lib/jquery/jquery.min.js"></script>
     <script>
         window.twttr = (function (d, s, id) {
             var js,
@@ -39,5 +39,9 @@
             return t;
         }(document, "script", "twitter-wjs"));
     </script>
+    <script src="~/lib/browser/signalr.min.js"></script>
+    <script src="~/js/stream-service.js" asp-append-version="true"></script>
+
+    <script src="_framework/blazor.server.js"></script>
 </body>
 </html>

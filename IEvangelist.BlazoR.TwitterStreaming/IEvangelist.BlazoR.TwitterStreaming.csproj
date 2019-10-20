@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazor.Extensions.SignalR" Version="0.4.0" />
     <PackageReference Include="Telerik.UI.for.Blazor" Version="2.1.1" />
   </ItemGroup>
 

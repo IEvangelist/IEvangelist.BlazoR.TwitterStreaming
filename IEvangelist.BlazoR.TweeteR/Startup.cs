@@ -25,6 +25,7 @@ namespace IEvangelist.BlazoR.TweeteR
             }
 
             app.UseRouting();
+            app.UseCors("OpenAllPolicy");
             app.UseEndpoints(endpoints => endpoints.MapHub<StreamHub>("/streamHub"));
         }
     }

@@ -17,6 +17,14 @@ namespace IEvangelist.BlazoR.Services.Extensions
             services.AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
                     .AddAzureSignalR();
 
+            services.AddCors(options =>
+                options.AddPolicy("OpenAllPolicy",
+                    policy =>
+                        policy.WithOrigins(configuration["TwitterStreamingUI:BaseAddress"])
+                              .AllowAnyHeader()
+                              .WithMethods("GET", "POST")
+                              .AllowCredentials()));
+
             Auth.SetUserCredentials(
                 configuration["Authentication:Twitter:ConsumerKey"],
                 configuration["Authentication:Twitter:ConsumerSecret"],
@@ -24,8 +32,15 @@ namespace IEvangelist.BlazoR.Services.Extensions
                 configuration["Authentication:Twitter:AccessTokenSecret"]);
 
             return services.AddSingleton<ISentimentService, SentimentService>()
+                           .AddSingleton<ITwitterService<THub>, TwitterService<THub>>()
                            .AddHostedService<TwitterService<THub>>()
-                           .AddSingleton<IFilteredStream>(_ => Stream.CreateFilteredStream());
+                           .AddSingleton<IFilteredStream>(_ => 
+                           {
+                               var stream = Stream.CreateFilteredStream();
+                               stream.StallWarnings = true;
+
+                               return stream;
+                           });
         }
     }
 }

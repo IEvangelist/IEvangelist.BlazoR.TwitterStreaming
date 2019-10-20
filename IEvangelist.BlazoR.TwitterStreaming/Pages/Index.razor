@@ -23,48 +23,27 @@
 
 <div class="row">
     <div class="col-4">
-        <button class="btn btn-lg btn-light mr-2" disabled="@IsStreaming" @onclick="Start">
+        <button id="startButton" class="btn btn-lg btn-light mr-2" @onclick="Start">
             <span class="oi oi-media-play mr-2"></span> Start
         </button>
-        <button class="btn btn-lg btn-light mr-2" disabled="@(!IsStreaming)" @onclick="Stop">
+        <button id="stopButton" class="btn btn-lg btn-light mr-2" @onclick="Stop">
             <span class="oi oi-media-stop mr-2"></span> Stop
         </button>
-        <button class="btn btn-lg btn-light" disabled="@(!IsStreaming)" @onclick="Pause">
+        <button id="pauseButton" class="btn btn-lg btn-light" @onclick="Pause">
             <span class="oi oi-media-pause mr-2"></span> Pause
         </button>
     </div>
     <div class="col-8">
         <div class="alert alert-primary" role="alert">
-            @Status
+            <span id="status"></span>
         </div>
     </div>
 </div>
 
 <div class="row">
-    @if (Tweets?.Any() ?? false)
-    {
-        <div class="col-6">
-            <h2 class="text-light">Filtered Tweets</h2>
-            <ul class="reversed no-bullets">
-                @foreach (var tweet in Tweets)
-                {
-                    var tweetHTml = new MarkupString(tweet.HTML);
-                    <li>@tweetHTml</li>
-                }
-            </ul>
-        </div>
-    }
-    @if (OffTopicTweets?.Any() ?? false)
-    {
-        <div class="col-6">
-            <h2 class="text-light">Off Topic Tweets</h2>
-            <ul class="reversed no-bullets">
-                @foreach (var tweet in OffTopicTweets)
-                {
-                    var tweetHTml = new MarkupString(tweet.HTML);
-                    <li>@tweetHTml</li>
-                }
-            </ul>
-        </div>
-    }
+    <div class="col-6">
+        <h2 class="text-light">Filtered Tweets</h2>
+        <ul id="tweets" class="reversed no-bullets">
+        </ul>
+    </div>
 </div>
