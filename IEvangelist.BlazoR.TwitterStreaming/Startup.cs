@@ -1,16 +1,12 @@
-using IEvangelist.BlazoR.Services.Extensions;
-using IEvangelist.BlazoR.TwitterStreaming.Hubs;
+using IEvangelist.BlazoR.TwitterStreaming.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
 using System.Linq;
 using System.Net.Mime;
-using Tweetinvi;
 
 namespace IEvangelist.BlazoR.TwitterStreaming
 {
@@ -19,29 +15,32 @@ namespace IEvangelist.BlazoR.TwitterStreaming
         readonly IConfiguration _configuration;
 
         public Startup(IConfiguration configuration) => _configuration = configuration;
-        
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddTelerikBlazor();
 
-            services.AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
-                    .AddMessagePackProtocol();
+            services.Configure<TweeteROptions>(
+                _configuration.GetSection(nameof(TweeteROptions)));
 
-            Auth.SetUserCredentials(
-                _configuration["Authentication:Twitter:ConsumerKey"],
-                _configuration["Authentication:Twitter:ConsumerSecret"],
-                _configuration["Authentication:Twitter:AccessToken"],
-                _configuration["Authentication:Twitter:AccessTokenSecret"]);
+            //services.AddCors(options =>
+            //    options.AddPolicy(
+            //        "OpenAllPolicy",
+            //        policy =>
+            //            policy.AllowAnyOrigin()
+            //                  .AllowAnyMethod()
+            //                  .AllowAnyHeader()
+            //                  .AllowCredentials()));
 
-            services.AddResponseCompression(options => options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] 
-            {
-                MediaTypeNames.Application.Octet,
-                "application/wasm"
-            }));
-
-            services.AddBlazoRTwitterServices<StreamHub>();
+            services.AddResponseCompression(
+                options =>
+                    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] 
+                    {
+                        MediaTypeNames.Application.Octet,
+                        "application/wasm"
+                    }));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -52,23 +51,17 @@ namespace IEvangelist.BlazoR.TwitterStreaming
             }
             else
             {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseExceptionHandler("/Error");                
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-
+            //app.UseCors("OpenAllPolicy");
             app.UseEndpoints(endpoints =>
             {
-                const HttpTransportType desiredTransports =
-                    HttpTransportType.WebSockets |
-                    HttpTransportType.LongPolling;
-
-                endpoints.MapHub<StreamHub>("/streamHub", options => options.Transports = desiredTransports);
-                endpoints.MapBlazorHub<App>(selector: "app");
+                endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

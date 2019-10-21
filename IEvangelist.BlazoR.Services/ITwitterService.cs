@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace IEvangelist.BlazoR.Services
 {
-    public interface ITwitterService<T> where T : Hub<ITwitterClient>
+    public interface ITwitterService<T> where T : Hub
     {
-        Task RemoveTrackAsync(string track);
+        void RemoveTrack(string track);
 
-        Task AddTracksAsync(ISet<string> tracks);
+        void AddTracks(ISet<string> tracks);
 
         Task StartTweetStreamAsync();
 
